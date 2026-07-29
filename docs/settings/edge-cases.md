@@ -57,10 +57,20 @@
 3. **Default icon** — empty/null icon becomes `users`; column is NOT NULL with default.
 4. **No fake icon color** — team icons use muted foreground until a color picker ships.
 5. **List query failure** — teams settings page soft-fails to `notFound()` instead of 500ing the shell.
-6. **Retired / deleted filters** — UI only; empty until those flows exist.
+6. **Retired / deleted filters** — driven by `retired_at` / `deleted_at`; list includes deleted when `includeDeleted`; shell sidebars exclude deleted.
+7. **Leave team** — blocked when the user is the sole team owner; blocked for deleted teams.
+8. **Soft delete** — requires exact team name confirm (trim/collapse spaces); sets `deleted_at` (and `retired_at` if unset).
+9. **Restore deleted** — clears `deleted_at` and `retired_at` back to active; hub shows restore-only UI for deleted teams.
+10. **Retire / restore retired** — idempotent no-ops when already in that state.
+11. **Delete dialog** — stays open on failed confirm/action; closes only after success.
+12. **Reserved key `NEW`** — cannot collide with `/settings/teams/new`.
+13. **Parent team** — same-workspace enforced by trigger; self-parent blocked by check.
+14. **Empty danger zone** — section omitted when the viewer has no leave/manage actions.
+15. **Settings back link** — `SettingsSubpage` sticky top-left in the scrolling main pane.
 
 ## General
 
 1. Prefer soft failures + toasts over uncaught client exceptions.
 2. Settings top padding is `pt-12` on `SettingsPage` (intentional spacing).
 3. Settings shell: sidebar fixed, **main pane** scrolls (`settings-shell.tsx`).
+4. Settings subpage back links use `SettingsSubpage` / `SettingsBackLink` — sticky `top-4 left-4` in the scrolling main pane (not `absolute` that scrolls away).
