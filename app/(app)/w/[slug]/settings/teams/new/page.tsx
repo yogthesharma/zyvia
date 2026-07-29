@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { TeamsSettingsList } from "@/components/settings/teams-settings-list"
+import { CreateTeamForm } from "@/components/settings/create-team-form"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import {
   getWorkspaceBySlug,
@@ -9,9 +9,9 @@ import {
 } from "@/lib/teams/queries"
 import { createClient } from "@/lib/supabase/server"
 
-export const metadata: Metadata = { title: "Teams" }
+export const metadata: Metadata = { title: "Create team" }
 
-export default async function TeamsSettingsPage({
+export default async function CreateTeamPage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -32,5 +32,11 @@ export default async function TeamsSettingsPage({
 
   const teams = await listWorkspaceTeams(workspace.id)
 
-  return <TeamsSettingsList workspaceSlug={slug} teams={teams} />
+  return (
+    <CreateTeamForm
+      workspaceId={workspace.id}
+      workspaceSlug={slug}
+      existingTeams={teams}
+    />
+  )
 }

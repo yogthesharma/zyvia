@@ -202,7 +202,9 @@ export function SettingsSidebar({
                     active={
                       pathname === item.href ||
                       (item.href.endsWith("/preferences") &&
-                        pathname === `/w/${workspace.slug}/settings`)
+                        pathname === `/w/${workspace.slug}/settings`) ||
+                      (item.href.endsWith("/teams") &&
+                        pathname.startsWith(`${item.href}/`))
                     }
                   />
                 ))}
@@ -226,7 +228,9 @@ export function SettingsSidebar({
                     href={`${base}/teams`}
                     className={cn(
                       "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                      "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
+                      pathname === `${base}/teams`
+                        ? "bg-sidebar-accent/50 text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                     )}
                   >
                     <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-emerald-500/20 text-[9px] font-semibold text-emerald-400">
@@ -237,10 +241,12 @@ export function SettingsSidebar({
                 ))
               )}
               <Link
-                href={`${base}/teams`}
+                href={`${base}/teams/new`}
                 className={cn(
                   "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                  "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
+                  pathname === `${base}/teams/new`
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                 )}
               >
                 <PlusIcon className="size-4 shrink-0 opacity-80" />

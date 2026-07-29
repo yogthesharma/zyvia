@@ -9,6 +9,7 @@ export type ShellTeam = {
   id: string
   name: string
   key: string
+  icon?: string | null
 }
 
 export type ShellUser = {

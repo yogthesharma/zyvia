@@ -36,7 +36,7 @@ export default async function WorkspaceLayout({
 
   const { data: teams } = await supabase
     .from("teams")
-    .select("id, name, key")
+    .select("id, name, key, icon")
     .eq("workspace_id", workspace.id)
     .order("name")
 
