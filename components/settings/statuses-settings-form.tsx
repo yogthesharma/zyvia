@@ -560,8 +560,8 @@ function CategoryBlock({
   )
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border/60 bg-card/30">
-      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2">
+    <div data-slot="surface" className="overflow-hidden rounded-lg">
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {categoryLabel(kind, category)}
         </p>

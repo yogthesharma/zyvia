@@ -21,6 +21,7 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Documents | Templates E2E | Workspace document templates + icon + rich body; see `documents.md` |
 | Labels | Settings E2E | Issue + project + team labels/groups; apply/merge deferred — `labels.md` |
 | Statuses | Settings E2E | Issue (team) + project (workspace) statuses; fixed categories — `statuses.md` |
+| Team workflows | Settings E2E | PR/auto-close/archive prefs saved; runners deferred — `workflows.md` |
 
 ## Product conventions (Linear-like)
 
@@ -51,4 +52,5 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 - [`documents.md`](./documents.md) — workspace document templates
 - [`labels.md`](./labels.md) — issue/project/team labels settings
 - [`statuses.md`](./statuses.md) — issue + project status workflows
+- [`workflows.md`](./workflows.md) — team workflows & automations settings
 - [`edge-cases.md`](./edge-cases.md) — bugs we already fixed; don’t regress

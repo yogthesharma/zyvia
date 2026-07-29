@@ -18,14 +18,10 @@ const SECTIONS: Record<string, { title: string; description: string }> = {
     title: "Templates",
     description: "Manage templates for issues, documents, and projects.",
   },
-  recurring: {
-    title: "Recurring issues",
-    description: "Manage automatic issue creation on a schedule.",
-  },
-  workflows: {
-    title: "Workflows & automations",
-    description: "Automations for this team's issues and git workflows.",
-  },
+  // recurring: {
+  //   title: "Recurring issues",
+  //   description: "Manage automatic issue creation on a schedule.",
+  // },
   cycles: {
     title: "Cycles",
     description: "Focus your team's work over short, time-boxed windows.",

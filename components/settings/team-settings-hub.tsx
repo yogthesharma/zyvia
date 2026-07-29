@@ -12,7 +12,6 @@ import {
   PulseIcon,
   StackIcon,
   TagSimpleIcon,
-  TimerIcon,
   UsersIcon,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
@@ -289,6 +288,7 @@ export function TeamSettingsHub({
                 description="Manage templates for issues, documents, and projects"
                 value="None"
               />
+              {/*
               <SettingsLinkRow
                 href={`${base}/recurring`}
                 icon={TimerIcon}
@@ -296,6 +296,7 @@ export function TeamSettingsHub({
                 description="Manage automatic issue creation on a schedule"
                 value="None"
               />
+              */}
             </SettingsSection>
 
             <SettingsSection title="Workflow">

@@ -142,6 +142,20 @@
 9. Add while editing discards the open draft; new names auto-suffix to avoid unique collisions.
 10. Issue/project apply surfaces beyond settings are **not** shipped yet (see `statuses.md`).
 
+## Team workflows
+
+1. Members can view; team managers (or workspace admins) edit — locked when workspace deletion is scheduled.
+2. Settings row is created lazily on first save; reads return defaults when missing.
+3. Status picks must belong to the team; deleted/missing statuses sanitize to “No action”.
+4. Branch rules: unique branch names (case-insensitive), max 50; empty name rejected.
+5. Per-field optimistic saves with request ids; ignore `initialSettings` while pending.
+6. Auto-close stale extras (period + status) only shown when the toggle is on.
+7. Git/webhook runners, stale scanners, archive jobs, and board reordering are **not** executed yet (see `workflows.md`).
+8. Enabling stale auto-close without a status auto-selects Canceled (server + client); fails if no statuses exist.
+9. Status pickers follow workflow category/position order (not A–Z).
+10. Branch rule field edits merge server-side by rule id; UI serializes edits per rule while pending.
+11. Branch add is blocked at 50 rules; Enter in the add dialog submits.
+
 ## General
 
 1. Prefer soft failures + toasts over uncaught client exceptions.
