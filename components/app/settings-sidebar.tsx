@@ -3,18 +3,28 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  AppWindowIcon,
   ArrowLeftIcon,
+  ArrowsLeftRightIcon,
   BellIcon,
+  BroadcastIcon,
   BuildingsIcon,
+  ChatCircleIcon,
   CodeIcon,
+  CreditCardIcon,
   CubeIcon,
   GearSixIcon,
   HandshakeIcon,
+  KeyIcon,
+  LockIcon,
   PlugsIcon,
+  PlusIcon,
   PulseIcon,
   RobotIcon,
+  RocketIcon,
   SealCheckIcon,
   ShieldCheckIcon,
+  SmileyIcon,
   SparkleIcon,
   StackIcon,
   TagSimpleIcon,
@@ -23,7 +33,7 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react"
 
-import type { ShellWorkspace } from "@/components/app/types"
+import type { ShellTeam, ShellWorkspace } from "@/components/app/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
@@ -65,18 +75,29 @@ function SettingsNavItem({
   )
 }
 
-export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
+export function SettingsSidebar({
+  workspace,
+  teams,
+}: {
+  workspace: ShellWorkspace
+  teams: ShellTeam[]
+}) {
   const pathname = usePathname()
   const base = `/w/${workspace.slug}/settings`
+  const appBase = `/w/${workspace.slug}`
 
   const sections: NavSection[] = [
     {
-      title: "Personal",
+      title: "Account",
       items: [
         { href: `${base}/preferences`, label: "Preferences", icon: GearSixIcon },
         { href: `${base}/profile`, label: "Profile", icon: UserCircleIcon },
         { href: `${base}/notifications`, label: "Notifications", icon: BellIcon },
-        { href: `${base}/security`, label: "Security & access", icon: ShieldCheckIcon },
+        {
+          href: `${base}/security`,
+          label: "Security & access",
+          icon: ShieldCheckIcon,
+        },
         {
           href: `${base}/connected-accounts`,
           label: "Connected accounts",
@@ -120,6 +141,10 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
           label: "Customer requests",
           icon: HandshakeIcon,
         },
+        { href: `${base}/releases`, label: "Releases", icon: RocketIcon },
+        { href: `${base}/pulse`, label: "Pulse", icon: BroadcastIcon },
+        { href: `${base}/asks`, label: "Asks", icon: ChatCircleIcon },
+        { href: `${base}/emojis`, label: "Emojis", icon: SmileyIcon },
         { href: `${base}/integrations`, label: "Integrations", icon: CodeIcon },
       ],
     },
@@ -129,6 +154,23 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
         { href: `${base}/workspace`, label: "Workspace", icon: BuildingsIcon },
         { href: `${base}/teams`, label: "Teams", icon: UsersIcon },
         { href: `${base}/members`, label: "Members", icon: UsersIcon },
+        {
+          href: `${base}/workspace-security`,
+          label: "Security",
+          icon: LockIcon,
+        },
+        { href: `${base}/api`, label: "API", icon: KeyIcon },
+        {
+          href: `${base}/applications`,
+          label: "Applications",
+          icon: AppWindowIcon,
+        },
+        { href: `${base}/billing`, label: "Billing", icon: CreditCardIcon },
+        {
+          href: `${base}/import-export`,
+          label: "Import & export",
+          icon: ArrowsLeftRightIcon,
+        },
       ],
     },
   ]
@@ -137,7 +179,7 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="shrink-0 p-3">
         <Link
-          href={`/w/${workspace.slug}/issues`}
+          href={`${appBase}/issues`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeftIcon className="size-3.5" />
@@ -167,6 +209,45 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
               </div>
             </div>
           ))}
+
+          <div className="space-y-1">
+            <p className="px-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Your teams
+            </p>
+            <div className="space-y-0.5">
+              {teams.length === 0 ? (
+                <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                  No teams yet
+                </p>
+              ) : (
+                teams.map((team) => (
+                  <Link
+                    key={team.id}
+                    href={`${base}/teams`}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                      "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-emerald-500/20 text-[9px] font-semibold text-emerald-400">
+                      {team.key.slice(0, 1)}
+                    </span>
+                    <span className="truncate">{team.name}</span>
+                  </Link>
+                ))
+              )}
+              <Link
+                href={`${base}/teams`}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                  "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <PlusIcon className="size-4 shrink-0 opacity-80" />
+                <span className="truncate">Create a team</span>
+              </Link>
+            </div>
+          </div>
         </nav>
       </ScrollArea>
     </aside>

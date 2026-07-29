@@ -21,7 +21,11 @@ export function WorkspaceChrome({
   const isSettings = pathname.includes(`/w/${workspace.slug}/settings`)
 
   if (isSettings) {
-    return <SettingsShell workspace={workspace}>{children}</SettingsShell>
+    return (
+      <SettingsShell workspace={workspace} teams={teams}>
+        {children}
+      </SettingsShell>
+    )
   }
 
   return (
