@@ -31,6 +31,7 @@ lib/<feature>/
 ## 3. Form (client)
 
 - `SettingsPage` / `SettingsSection` / `SettingsRow`
+- Subpages with a back control: wrap in `SettingsSubpage` (`backHref` + `backLabel`) — sticky top-left, shared with create-team / agent skill / team hub
 - Local state + `ref` for latest committed model
 - Per-field pending `Set` + request id race guards
 - `toast.success` / `toast.error` with one toast id

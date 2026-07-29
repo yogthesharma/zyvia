@@ -1,11 +1,10 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { CaretLeftIcon } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
+import { SettingsSubpage } from "@/components/app/settings-page"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -106,15 +105,7 @@ export function AgentSkillForm({
   }
 
   return (
-    <div className="relative min-h-full">
-      <Link
-        href={backHref}
-        className="absolute top-4 left-4 z-10 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <CaretLeftIcon className="size-3.5" />
-        Agent personalization
-      </Link>
-
+    <SettingsSubpage backHref={backHref} backLabel="Agent personalization">
       <form
         onSubmit={onSubmit}
         className="mx-auto w-full max-w-3xl space-y-6 px-8 pt-12 pb-8"
@@ -170,6 +161,6 @@ export function AgentSkillForm({
           </Button>
         </div>
       </form>
-    </div>
+    </SettingsSubpage>
   )
 }

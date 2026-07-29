@@ -1,9 +1,52 @@
 import { teamKeyFromName } from "@/lib/slug"
+import type {
+  TeamEstimationScale,
+  TeamLifecycleStatus,
+  TeamVisibility,
+} from "@/lib/teams/types"
 
 const ICON_NAME_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const VISIBILITY = new Set<TeamVisibility>(["workspace", "private"])
+const ESTIMATION = new Set<TeamEstimationScale>([
+  "none",
+  "exponential",
+  "fibonacci",
+  "linear",
+  "tshirt",
+])
 
 /** Default Lucide icon name when a team has no custom icon. */
 export const DEFAULT_TEAM_ICON = "users"
+
+export function teamLifecycleStatus(input: {
+  retiredAt: string | null
+  deletedAt: string | null
+}): TeamLifecycleStatus {
+  if (input.deletedAt) return "deleted"
+  if (input.retiredAt) return "retired"
+  return "active"
+}
+
+export function parseTeamVisibility(
+  value: unknown
+): { visibility?: TeamVisibility; error?: string } {
+  if (typeof value !== "string" || !VISIBILITY.has(value as TeamVisibility)) {
+    return { error: "Pick a valid visibility." }
+  }
+  return { visibility: value as TeamVisibility }
+}
+
+export function parseTeamEstimationScale(
+  value: unknown
+): { estimationScale?: TeamEstimationScale; error?: string } {
+  if (
+    typeof value !== "string" ||
+    !ESTIMATION.has(value as TeamEstimationScale)
+  ) {
+    return { error: "Pick a valid estimation scale." }
+  }
+  return { estimationScale: value as TeamEstimationScale }
+}
 
 export function parseTeamName(name: unknown): { name?: string; error?: string } {
   if (typeof name !== "string") return { error: "Enter a team name." }
@@ -26,6 +69,9 @@ export function parseTeamKey(
 
   if (key.length < 2 || key.length > 4) {
     return { error: "Identifier must be 2–4 letters." }
+  }
+  if (key === "NEW") {
+    return { error: "That identifier is reserved." }
   }
   return { key }
 }

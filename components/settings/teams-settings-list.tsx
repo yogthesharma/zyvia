@@ -19,9 +19,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import type { TeamSummary } from "@/lib/teams/types"
+import type { TeamLifecycleStatus, TeamSummary } from "@/lib/teams/types"
 
-type StatusFilter = "active" | "retired" | "deleted"
+type StatusFilter = TeamLifecycleStatus
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
   active: "Active",
@@ -119,10 +119,9 @@ export function TeamsSettingsList({
   const columns = React.useMemo(() => createColumns(), [])
 
   const filtered = React.useMemo(() => {
-    if (status !== "active") return [] as TeamSummary[]
     const needle = query.trim().toLowerCase()
     return teams.filter((team) => {
-      if (team.status !== "active") return false
+      if (team.status !== status) return false
       if (!needle) return true
       return (
         team.name.toLowerCase().includes(needle) ||
@@ -137,15 +136,19 @@ export function TeamsSettingsList({
         ? "No teams match that filter."
         : "No teams yet. Create one to start tracking issues."
       : status === "retired"
-        ? "No retired teams."
-        : "No recently deleted teams."
+        ? query.trim()
+          ? "No retired teams match that filter."
+          : "No retired teams."
+        : query.trim()
+          ? "No deleted teams match that filter."
+          : "No recently deleted teams."
 
   const groupLabel =
     status === "active"
       ? `Active ${filtered.length}`
       : status === "retired"
-        ? "Retired 0"
-        : "Recently deleted 0"
+        ? `Retired ${filtered.length}`
+        : `Recently deleted ${filtered.length}`
 
   return (
     <div className="flex w-full min-w-0 flex-col px-8 pt-12 pb-8">
@@ -207,7 +210,7 @@ export function TeamsSettingsList({
         groupLabel={groupLabel}
         initialSorting={[{ id: "name", desc: false }]}
         getRowHref={(row) =>
-          `/w/${workspaceSlug}/team/${row.original.key.toLowerCase()}`
+          `/w/${workspaceSlug}/settings/teams/${row.original.key.toLowerCase()}`
         }
       />
     </div>

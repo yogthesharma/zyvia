@@ -1,6 +1,7 @@
 "use client"
 
-import { InfoIcon } from "@phosphor-icons/react"
+import Link from "next/link"
+import { CaretLeftIcon, InfoIcon } from "@phosphor-icons/react"
 
 import {
   Tooltip,
@@ -8,6 +9,50 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+
+/**
+ * Sticky top-left back control for settings subpages.
+ * Sits in the scrolling main pane (see SettingsShell) without consuming layout height.
+ */
+export function SettingsBackLink({
+  href,
+  label,
+}: {
+  href: string
+  label: string
+}) {
+  return (
+    <div className="pointer-events-none sticky top-0 z-20 h-0">
+      <Link
+        href={href}
+        className="pointer-events-auto absolute top-4 left-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <CaretLeftIcon className="size-3.5" />
+        {label}
+      </Link>
+    </div>
+  )
+}
+
+/** Wrapper for settings subpages that need a sticky back link. */
+export function SettingsSubpage({
+  backHref,
+  backLabel,
+  children,
+  className,
+}: {
+  backHref: string
+  backLabel: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn("relative min-h-full", className)}>
+      <SettingsBackLink href={backHref} label={backLabel} />
+      {children}
+    </div>
+  )
+}
 
 export function SettingsPage({
   title,

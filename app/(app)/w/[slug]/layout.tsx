@@ -54,6 +54,7 @@ export default async function WorkspaceLayout({
     .from("teams")
     .select("id, name, key, icon")
     .eq("workspace_id", workspace.id)
+    .is("deleted_at", null)
     .order("name")
 
   const preferences = await getUserPreferences(user.id, profile.theme)

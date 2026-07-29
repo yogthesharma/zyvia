@@ -1,14 +1,13 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeftIcon } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
 import {
   SettingsRow,
   SettingsSection,
+  SettingsSubpage,
 } from "@/components/app/settings-page"
 import { Button } from "@/components/ui/button"
 import { Icon, IconPicker, type IconName } from "@/components/ui/icon-picker"
@@ -89,15 +88,10 @@ export function CreateTeamForm({
   }
 
   return (
-    <div className="relative min-h-full">
-      <Link
-        href={`/w/${workspaceSlug}/settings/teams`}
-        className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-3.5" />
-        Back
-      </Link>
-
+    <SettingsSubpage
+      backHref={`/w/${workspaceSlug}/settings/teams`}
+      backLabel="Back"
+    >
       <form
         onSubmit={onSubmit}
         className="mx-auto w-full max-w-3xl px-8 pt-12 pb-8"
@@ -279,6 +273,6 @@ export function CreateTeamForm({
           </div>
         </div>
       </form>
-    </div>
+    </SettingsSubpage>
   )
 }

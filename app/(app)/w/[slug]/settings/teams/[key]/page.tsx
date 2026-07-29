@@ -1,22 +1,27 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { TeamsSettingsList } from "@/components/settings/teams-settings-list"
+import { TeamSettingsHub } from "@/components/settings/team-settings-hub"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import {
+  getTeamSettingsByKeyOrNull,
   getWorkspaceBySlug,
-  listWorkspaceTeamsOrNull,
 } from "@/lib/teams/queries"
 import { createClient } from "@/lib/supabase/server"
 
-export const metadata: Metadata = { title: "Teams" }
+type PageProps = {
+  params: Promise<{ slug: string; key: string }>
+}
 
-export default async function TeamsSettingsPage({
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
+}: PageProps): Promise<Metadata> {
+  const { key } = await params
+  return { title: `${key.toUpperCase()} · Team` }
+}
+
+export default async function TeamSettingsPage({ params }: PageProps) {
+  const { slug, key } = await params
   const { user } = await requireCompletedOnboarding()
   const workspace = await getWorkspaceBySlug(slug)
   if (!workspace) notFound()
@@ -30,10 +35,12 @@ export default async function TeamsSettingsPage({
     .maybeSingle()
   if (!membership) notFound()
 
-  const teams = await listWorkspaceTeamsOrNull(workspace.id, {
-    includeDeleted: true,
+  const team = await getTeamSettingsByKeyOrNull({
+    workspaceId: workspace.id,
+    key,
+    userId: user.id,
   })
-  if (!teams) notFound()
+  if (!team) notFound()
 
-  return <TeamsSettingsList workspaceSlug={slug} teams={teams} />
+  return <TeamSettingsHub workspaceSlug={slug} team={team} />
 }

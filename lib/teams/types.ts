@@ -1,3 +1,15 @@
+export type TeamVisibility = "workspace" | "private"
+
+export type TeamEstimationScale =
+  | "none"
+  | "exponential"
+  | "fibonacci"
+  | "linear"
+  | "tshirt"
+
+/** Derived list/filter status from retired_at / deleted_at. */
+export type TeamLifecycleStatus = "active" | "retired" | "deleted"
+
 export type TeamSummary = {
   id: string
   name: string
@@ -5,12 +17,25 @@ export type TeamSummary = {
   icon: string | null
   timezone: string
   createdAt: string
-  /** Workspace-visible until private teams ship. */
-  visibility: "workspace"
-  /** Active until retire/delete flows ship. */
-  status: "active"
+  visibility: TeamVisibility
+  status: TeamLifecycleStatus
   memberCount: number
   issueCount: number
+  retiredAt: string | null
+  deletedAt: string | null
+}
+
+export type TeamSettings = TeamSummary & {
+  workspaceId: string
+  estimationScale: TeamEstimationScale
+  parentTeamId: string | null
+  triageEnabled: boolean
+  workflowStateCount: number
+  membershipRole: "owner" | "admin" | "member" | null
+  /** Current user is on the team. */
+  isMember: boolean
+  /** Can retire/delete or edit team settings (team owner/admin or workspace owner/admin). */
+  canManage: boolean
 }
 
 export type CreateTeamInput = {
@@ -27,4 +52,10 @@ export type CreateTeamResult = {
   /** Non-fatal issue after the team row was created. */
   warning?: string
   team?: TeamSummary
+}
+
+export type TeamActionResult = {
+  error?: string
+  team?: TeamSettings
+  redirectTo?: string
 }

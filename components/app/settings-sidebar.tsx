@@ -233,10 +233,13 @@ export function SettingsSidebar({
                 teams.map((team) => (
                   <Link
                     key={team.id}
-                    href={`${base}/teams`}
+                    href={`${base}/teams/${team.key.toLowerCase()}`}
                     className={cn(
                       "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                      pathname === `${base}/teams`
+                      pathname === `${base}/teams/${team.key.toLowerCase()}` ||
+                        pathname.startsWith(
+                          `${base}/teams/${team.key.toLowerCase()}/`
+                        )
                         ? "bg-sidebar-accent/50 text-sidebar-accent-foreground"
                         : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                     )}
