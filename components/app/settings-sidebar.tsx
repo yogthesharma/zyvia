@@ -134,8 +134,8 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
   ]
 
   return (
-    <aside className="flex h-svh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <div className="p-3">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+      <div className="shrink-0 p-3">
         <Link
           href={`/w/${workspace.slug}/issues`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -145,7 +145,7 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
         </Link>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1">
         <nav className="space-y-5 p-3">
           {sections.map((section) => (
             <div key={section.title} className="space-y-1">

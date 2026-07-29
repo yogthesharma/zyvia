@@ -11,9 +11,9 @@ export function SettingsShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-svh w-full bg-background">
+    <div className="flex h-svh w-full overflow-hidden bg-background">
       <SettingsSidebar workspace={workspace} />
-      <main className="flex min-w-0 flex-1 flex-col overflow-auto">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
         {children}
       </main>
     </div>
