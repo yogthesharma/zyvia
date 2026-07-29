@@ -16,6 +16,7 @@
 | Types | `lib/workspace/types.ts` |
 | Migrations | `supabase/migrations/20260729180000_workspace_settings.sql` |
 | | `supabase/migrations/20260729181000_workspace_settings_hardening.sql` |
+| | `supabase/migrations/20260729192000_workspace_slug_aliases.sql` |
 
 Related shell wiring:
 
@@ -38,6 +39,16 @@ Path: `{workspaceId}/logo.{ext}`
 RLS: owner/admin via `private.workspace_role(...)`.
 
 Delete policy: owners can `DELETE` workspaces (`workspaces_delete_owner`).
+
+## Slug aliases (former URLs)
+
+When the workspace slug changes, the previous slug is stored in `workspace_slug_aliases` (DB trigger `workspaces_record_slug_alias`).
+
+- Visiting `/w/<old-slug>/…` permanently redirects to `/w/<current-slug>/…` (path + query preserved)
+- Alias lookup: RPC `current_workspace_slug_for_alias(p_slug)` from `app/(app)/w/[slug]/layout.tsx`
+- Proxy sets `x-pathname` / `x-search` so the layout can rebuild the redirect target
+- Former slugs stay reserved (cannot be claimed by another workspace)
+- Renaming back to a former slug reclaims that alias for the same workspace
 
 ## Region (do not show “Supabase” to users)
 
@@ -77,6 +88,7 @@ Mirror profile avatar flow:
 - Use `apiSlugRef` for server calls so concurrent field saves don’t hit a stale/optimistic slug
 - On field failure, roll back **only that field** (don’t wipe sibling in-flight changes)
 - Don’t sync `initialWorkspace` over local state while any key is pending
+- After a successful slug change, hard-navigate to `/w/<new-slug>/settings/workspace`
 
 ## Create workspace RPC
 

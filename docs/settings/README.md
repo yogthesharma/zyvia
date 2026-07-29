@@ -14,7 +14,7 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Notifications | Done | Email notification settings |
 | Security & access | Done | Sessions + personal API keys |
 | Connected accounts | UI only | Connect CTA → `toast("Coming soon")` |
-| Workspace (Administration) | Done E2E | Logo, name, slug, fiscal year, region, scheduled deletion |
+| Workspace (Administration) | Done E2E | Logo, name, slug (+ former-slug redirects), fiscal year, region, scheduled deletion |
 | Teams / Members / others | In progress / stubs | Don’t mix into workspace commits |
 
 ## Product conventions (Linear-like)

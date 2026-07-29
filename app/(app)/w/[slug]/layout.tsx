@@ -1,10 +1,12 @@
-import { notFound } from "next/navigation"
+import { headers } from "next/headers"
+import { notFound, permanentRedirect } from "next/navigation"
 
 import { WorkspaceChrome } from "@/components/app/workspace-chrome"
 import { PreferencesProvider } from "@/components/preferences-provider"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import { getUserPreferences } from "@/lib/preferences/queries"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentSlugForAlias } from "@/lib/workspace/queries"
 
 export default async function WorkspaceLayout({
   children,
@@ -23,7 +25,21 @@ export default async function WorkspaceLayout({
     .eq("slug", slug)
     .maybeSingle()
 
-  if (!workspace) notFound()
+  if (!workspace) {
+    const currentSlug = await getCurrentSlugForAlias(slug)
+    if (currentSlug && currentSlug !== slug) {
+      const headerStore = await headers()
+      const pathname = headerStore.get("x-pathname") ?? `/w/${slug}`
+      const search = headerStore.get("x-search") ?? ""
+      const prefix = `/w/${slug}`
+      const suffix =
+        pathname === prefix || pathname.startsWith(`${prefix}/`)
+          ? pathname.slice(prefix.length)
+          : ""
+      permanentRedirect(`/w/${currentSlug}${suffix}${search}`)
+    }
+    notFound()
+  }
 
   const { data: membership } = await supabase
     .from("workspace_members")

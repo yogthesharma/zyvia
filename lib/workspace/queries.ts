@@ -15,6 +15,22 @@ function urlPrefixFromSite() {
   }
 }
 
+/** If `slug` is a former workspace URL, return the workspace's current slug. */
+export async function getCurrentSlugForAlias(
+  slug: string
+): Promise<string | null> {
+  if (!isValidWorkspaceSlug(slug)) return null
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc(
+    "current_workspace_slug_for_alias",
+    { p_slug: slug }
+  )
+
+  if (error) throw new Error(error.message)
+  return typeof data === "string" && data.length > 0 ? data : null
+}
+
 export async function getWorkspaceSettings(
   slug: string,
   userId: string

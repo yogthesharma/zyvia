@@ -5,10 +5,17 @@ import { isDefaultHomeView } from "@/lib/preferences/schema"
 import { getSupabaseEnv } from "@/lib/supabase/env"
 import { safeInternalPath } from "@/lib/validation"
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+function nextWithRequestMeta(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-pathname", request.nextUrl.pathname)
+  requestHeaders.set("x-search", request.nextUrl.search)
+  return NextResponse.next({
+    request: { headers: requestHeaders },
   })
+}
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = nextWithRequestMeta(request)
 
   const { url, publishableKey } = getSupabaseEnv()
 
@@ -21,9 +28,7 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         )
-        supabaseResponse = NextResponse.next({
-          request,
-        })
+        supabaseResponse = nextWithRequestMeta(request)
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         )

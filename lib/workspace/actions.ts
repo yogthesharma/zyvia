@@ -152,7 +152,10 @@ export async function updateWorkspaceSettings(
       .eq("id", access.workspace.id)
 
     if (error) {
-      if (error.code === "23505") {
+      if (
+        error.code === "23505" ||
+        /already taken/i.test(error.message)
+      ) {
         return { error: "That workspace URL is already taken." }
       }
       if (error.code === "23514") {
@@ -167,7 +170,10 @@ export async function updateWorkspaceSettings(
     if (!workspace) return { error: "Workspace not found after save." }
 
     const result: WorkspaceActionResult = { workspace }
-    if (typeof patch.slug === "string" && patch.slug !== slug) {
+    if (
+      typeof patch.slug === "string" &&
+      patch.slug !== access.workspace.slug
+    ) {
       result.redirectTo = `/w/${patch.slug}/settings/workspace`
     }
     return result

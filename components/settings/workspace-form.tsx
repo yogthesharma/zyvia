@@ -225,11 +225,13 @@ export function WorkspaceForm({
       toast.success("Workspace settings saved", { id: TOAST_ID })
 
       if (result.redirectTo) {
-        router.replace(result.redirectTo)
-        router.refresh()
-      } else {
-        router.refresh()
+        // Hard navigate so the URL/chrome update immediately; skip refresh
+        // on the old slug (it's now an alias and would race the redirect).
+        window.location.assign(result.redirectTo)
+        return
       }
+
+      router.refresh()
     } catch (error) {
       if (requestIdsRef.current[key] !== requestId) return
       workspaceRef.current = {

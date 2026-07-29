@@ -16,6 +16,8 @@
 12. **No infra in UI** — no Supabase mentions; no “Read more” on region.
 13. **Members** — inputs disabled; delete disabled unless `canDelete`.
 14. **Create RPC** — slug length 2–48 and name max 80 enforced in SQL.
+15. **Slug rename aliases** — old slugs are saved and redirect to the current URL; former slugs stay reserved for other workspaces.
+16. **Slug rename client nav** — after a successful slug save, hard-navigate (`location.assign`) to the new settings URL; don’t `router.refresh()` on the old slug (now an alias).
 
 ## Connected accounts
 
