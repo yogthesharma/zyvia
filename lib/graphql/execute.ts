@@ -1,12 +1,14 @@
 import { execute, parse, type ExecutionResult } from "graphql"
 
 import { createContext } from "@/lib/graphql/context"
-import { schema } from "@/lib/graphql/schema"
+import { buildSchema } from "@/lib/graphql/schema"
 
 export async function executeGraphQL<TData = Record<string, unknown>>(
   source: string,
   variableValues?: Record<string, unknown>
 ): Promise<TData> {
+  // Build in this module graph so schema + execute share one `graphql` realm.
+  const schema = buildSchema()
   const contextValue = await createContext()
   const result = (await execute({
     schema,

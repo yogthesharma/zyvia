@@ -1,7 +1,19 @@
-import { builder } from "@/lib/graphql/builder"
+import type { GraphQLSchema } from "graphql"
 
-import "@/lib/graphql/schema/user"
-import "@/lib/graphql/schema/workspace"
-import "@/lib/graphql/schema/mutations"
+import { createBuilder } from "@/lib/graphql/builder"
+import { registerUser } from "@/lib/graphql/schema/user"
+import { registerWorkspace } from "@/lib/graphql/schema/workspace"
 
-export const schema = builder.toSchema()
+export function buildSchema(): GraphQLSchema {
+  const builder = createBuilder()
+  registerUser(builder)
+  registerWorkspace(builder)
+  return builder.toSchema()
+}
+
+/**
+ * Fresh schema per module evaluation.
+ * Do not cache on globalThis — Turbopack HMR can load duplicate `graphql`
+ * module realms, and a cached schema from another realm fails instanceof checks.
+ */
+export const schema = buildSchema()

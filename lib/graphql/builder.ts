@@ -6,21 +6,27 @@ export type GraphQLContext = {
   user: User | null
 }
 
-export const builder = new SchemaBuilder<{
-  Context: GraphQLContext
-  Scalars: {
-    DateTime: { Input: Date | string; Output: Date | string }
-  }
-}>({})
+export function createBuilder() {
+  const builder = new SchemaBuilder<{
+    Context: GraphQLContext
+    Scalars: {
+      DateTime: { Input: Date | string; Output: Date | string }
+    }
+  }>({})
 
-builder.queryType({})
-builder.mutationType({})
+  builder.queryType({})
+  builder.mutationType({})
 
-builder.scalarType("DateTime", {
-  serialize: (value) =>
-    value instanceof Date ? value.toISOString() : String(value),
-  parseValue: (value) => {
-    if (typeof value === "string" || value instanceof Date) return value
-    throw new Error("Invalid DateTime")
-  },
-})
+  builder.scalarType("DateTime", {
+    serialize: (value) =>
+      value instanceof Date ? value.toISOString() : String(value),
+    parseValue: (value) => {
+      if (typeof value === "string" || value instanceof Date) return value
+      throw new Error("Invalid DateTime")
+    },
+  })
+
+  return builder
+}
+
+export type Builder = ReturnType<typeof createBuilder>

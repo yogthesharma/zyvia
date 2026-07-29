@@ -1,5 +1,8 @@
 packages: []
 
+overrides:
+  graphql: 16.11.0
+
 allowBuilds:
   sharp: true
   unrs-resolver: true
