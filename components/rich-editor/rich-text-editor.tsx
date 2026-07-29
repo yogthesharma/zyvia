@@ -31,7 +31,7 @@ export type RichTextEditorProps = {
   mentionables?: RichMentionable[]
   /** When set, media uploads go to Supabase editor-media for this workspace. */
   workspaceId?: string | null
-  variant?: "default" | "compact" | "playground"
+  variant?: "default" | "compact" | "playground" | "plain"
   /**
    * Playground-only localStorage key. Omit / null for product surfaces.
    */
@@ -56,6 +56,7 @@ const VARIANT_CONTAINER: Record<
   default: "min-h-[280px] max-h-[min(70vh,640px)]",
   compact: "min-h-[160px] max-h-[360px]",
   playground: "min-h-[720px] max-h-[80vh]",
+  plain: "min-h-[200px] max-h-[min(70vh,640px)]",
 }
 
 function readStoredValue(storageKey: string): Value | null {
@@ -99,7 +100,9 @@ function RichTextEditorInner({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-border bg-background",
+        variant === "plain"
+          ? "bg-transparent"
+          : "overflow-hidden rounded-xl border border-border bg-background",
         className
       )}
     >
@@ -118,7 +121,11 @@ function RichTextEditorInner({
             placeholder={placeholder}
             variant="none"
             className={cn(
-              variant === "playground" ? "px-8 py-6" : "px-4 py-3 text-sm"
+              variant === "playground"
+                ? "px-8 py-6"
+                : variant === "plain"
+                  ? "px-0 py-1 text-sm"
+                  : "px-4 py-3 text-sm"
             )}
           />
         </EditorContainer>

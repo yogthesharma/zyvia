@@ -2,10 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import {
-  CaretDownIcon,
-  MagnifyingGlassIcon,
-} from "@phosphor-icons/react"
+import { MagnifyingGlassIcon } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,13 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -57,14 +47,6 @@ import type {
 } from "@/lib/members/types"
 
 const TOAST_ID = "workspace-members"
-
-type Filter = "all" | "active" | "pending"
-
-const FILTER_LABELS: Record<Filter, string> = {
-  all: "All",
-  active: "Active",
-  pending: "Pending invites",
-}
 
 function MemberNameCell({ member }: { member: WorkspaceMemberRow }) {
   return (
@@ -264,7 +246,6 @@ export function MembersSettingsList({
 }) {
   const router = useRouter()
   const [query, setQuery] = React.useState("")
-  const [filter, setFilter] = React.useState<Filter>("all")
   const [inviteOpen, setInviteOpen] = React.useState(false)
   const [emailsRaw, setEmailsRaw] = React.useState("")
   const [inviteRole, setInviteRole] = React.useState<"member" | "admin">(
@@ -303,7 +284,6 @@ export function MembersSettingsList({
   const needle = query.trim().toLowerCase()
 
   const filteredMembers = React.useMemo(() => {
-    if (filter === "pending") return []
     return initial.members.filter((member) => {
       if (!needle) return true
       return (
@@ -312,15 +292,14 @@ export function MembersSettingsList({
         member.email.toLowerCase().includes(needle)
       )
     })
-  }, [initial.members, filter, needle])
+  }, [initial.members, needle])
 
   const filteredInvites = React.useMemo(() => {
-    if (filter === "active") return []
     return initial.pendingInvites.filter((invite) => {
       if (!needle) return true
       return invite.email.toLowerCase().includes(needle)
     })
-  }, [initial.pendingInvites, filter, needle])
+  }, [initial.pendingInvites, needle])
 
   async function onInvite() {
     setInviting(true)
@@ -385,58 +364,33 @@ export function MembersSettingsList({
             aria-label="Search members"
           />
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="sm" className="gap-1.5">
-              {FILTER_LABELS[filter]}
-              <CaretDownIcon className="size-3.5 opacity-70" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="min-w-44">
-            <DropdownMenuRadioGroup
-              value={filter}
-              onValueChange={(value) => setFilter(value as Filter)}
-            >
-              <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="pending">
-                Pending invites
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
-      {filter !== "pending" ? (
-        <div className="mb-8">
-          <DataTable
-            columns={memberColumns}
-            data={filteredMembers}
-            groupLabel={`Active ${filteredMembers.length}`}
-            emptyMessage={
-              needle
-                ? "No members match that search."
-                : "No members in this workspace yet."
-            }
-            initialSorting={[{ id: "fullName", desc: false }]}
-          />
-        </div>
-      ) : null}
-
-      {filter === "pending" ||
-      filteredInvites.length > 0 ||
-      (filter === "all" && initial.pendingInvites.length > 0) ? (
+      <div className="mb-8">
         <DataTable
-          columns={inviteColumns}
-          data={filteredInvites}
-          groupLabel={`Pending invites ${filteredInvites.length}`}
+          columns={memberColumns}
+          data={filteredMembers}
           emptyMessage={
             needle
-              ? "No pending invites match that search."
-              : "No pending invites."
+              ? "No members match that search."
+              : "No members in this workspace yet."
           }
-          initialSorting={[{ id: "email", desc: false }]}
+          initialSorting={[{ id: "fullName", desc: false }]}
         />
+      </div>
+
+      {initial.pendingInvites.length > 0 ? (
+        <div>
+          <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+            Pending invites
+          </h2>
+          <DataTable
+            columns={inviteColumns}
+            data={filteredInvites}
+            emptyMessage="No pending invites match that search."
+            initialSorting={[{ id: "email", desc: false }]}
+          />
+        </div>
       ) : null}
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
