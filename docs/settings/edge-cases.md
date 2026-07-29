@@ -37,6 +37,19 @@
 9. Skill rows show relative “Updated …” on the right; list ordered by `updated_at` desc.
 10. MCP connectors section is omitted for now.
 
+## SLAs
+
+1. Members can view; only owners/admins enable, edit work week, or mutate rules — and not while workspace deletion is scheduled.
+2. Enable is idempotent; default rules seed only when the workspace has zero rules. Seed failure rolls enable back off.
+3. Disable keeps existing rules (re-enable restores the same list).
+4. Add rule is disabled until SLAs are enabled.
+5. First matching rule wins — drag to reorder (`@dnd-kit` overlay + placeholder + vertical restriction); positions persisted via `reorderSlaRules`.
+6. Reorder rejects duplicate/missing/stale ids; create uses max(position)+1 and maps unique collisions.
+7. Remove-action rules cannot carry a duration; add-action custom durations require amount + unit (client parse + DB check).
+8. Invalid rule ids → “Rule not found.”; update no-ops when unchanged.
+9. Pending mutations ignore `initialSettings` refresh clobber.
+10. Issue create/update evaluation, badges, notifications, and filters are **not** shipped yet (see `slas.md`).
+
 ## Teams
 
 1. **Creator membership** — creating a team always inserts the creator as team `owner`; onboarding does the same.

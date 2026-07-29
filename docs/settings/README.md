@@ -15,6 +15,7 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Security & access | Done | Sessions + personal API keys |
 | Connected accounts | UI only | Connect CTA → `toast("Coming soon")` |
 | Agent personalization | Guidance + Skills E2E | MCP omitted for now; see `agent-personalization.md` |
+| SLAs | Settings E2E | Enable, work week, rules; issue evaluation deferred — `slas.md` |
 | Workspace (Administration) | Done E2E | Logo, name, slug (+ former-slug redirects), fiscal year, region, scheduled deletion |
 | Teams / Members / others | In progress / stubs | Don’t mix into workspace commits |
 
@@ -40,6 +41,7 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 
 - [`connected-accounts.md`](./connected-accounts.md) — UI stub pattern
 - [`agent-personalization.md`](./agent-personalization.md) — personal agent guidance + stubs
+- [`slas.md`](./slas.md) — SLA settings + deferred issue evaluation
 - [`workspace-settings.md`](./workspace-settings.md) — full E2E settings reference
 - [`patterns.md`](./patterns.md) — checklist for building the next settings page
 - [`edge-cases.md`](./edge-cases.md) — bugs we already fixed; don’t regress
