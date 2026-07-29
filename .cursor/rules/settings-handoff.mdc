@@ -1,0 +1,21 @@
+---
+description: Zyvia settings pages — read docs/settings handoff before changing settings
+globs: app/(app)/w/[slug]/settings/**/*,components/settings/**/*,lib/workspace/**/*,lib/profile/**/*,lib/preferences/**/*,lib/notifications/**/*,lib/security/**/*
+alwaysApply: false
+---
+
+# Settings work
+
+Before editing settings UI, actions, or migrations, read:
+
+- `docs/settings/README.md`
+- Feature notes under `docs/settings/` (workspace, connected-accounts, patterns, edge-cases)
+
+## Must follow
+
+- Use `SettingsPage` / `SettingsSection` / `SettingsRow`
+- Domain code in `lib/<feature>/{types,schema,queries,actions}.ts`
+- Sonner toasts with a stable id; per-field saves with race-safe rollback
+- No Supabase/infra names in user-facing copy
+- Don’t regress items listed in `docs/settings/edge-cases.md`
+- Don’t commit unrelated WIP (teams, icon-picker, lockfile-only churn) with settings work
