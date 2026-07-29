@@ -2,10 +2,11 @@
 
 import { redirect } from "next/navigation"
 
-import { requireProfile } from "@/lib/auth/session"
+import { getPrimaryWorkspace, requireProfile } from "@/lib/auth/session"
 import { slugify, teamKeyFromName } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
 import type { OnboardingStep } from "@/lib/types"
+import { isValidEmail } from "@/lib/validation"
 
 export type OnboardingState = {
   error?: string
@@ -21,7 +22,14 @@ async function setStep(userId: string, step: OnboardingStep) {
         }
       : { onboarding_step: step }
 
-  await supabase.from("profiles").update(payload).eq("id", userId)
+  const { error } = await supabase
+    .from("profiles")
+    .update(payload)
+    .eq("id", userId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
 }
 
 export async function saveProfileName(
@@ -55,6 +63,17 @@ export async function saveWorkspace(
 
   const supabase = await createClient()
 
+  // Idempotent: don't create another workspace if onboarding already did.
+  const existing = await getPrimaryWorkspace(user.id)
+  if (existing) {
+    try {
+      await setStep(user.id, "team")
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Could not update step." }
+    }
+    redirect("/onboarding/team")
+  }
+
   let { error: workspaceError } = await supabase.rpc("create_workspace", {
     p_name: name,
     p_slug: slug,
@@ -70,7 +89,12 @@ export async function saveWorkspace(
 
   if (workspaceError) return { error: workspaceError.message }
 
-  await setStep(user.id, "team")
+  try {
+    await setStep(user.id, "team")
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Workspace created, but step update failed. Refresh and continue." }
+  }
+
   redirect("/onboarding/team")
 }
 
@@ -92,17 +116,27 @@ export async function saveTeam(
   }
 
   const supabase = await createClient()
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", user.id)
+  const workspace = await getPrimaryWorkspace(user.id)
+  if (!workspace) return { error: "Create a workspace first." }
+
+  const { data: existingTeam } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("workspace_id", workspace.id)
     .limit(1)
     .maybeSingle()
 
-  if (!membership) return { error: "Create a workspace first." }
+  if (existingTeam) {
+    try {
+      await setStep(user.id, "theme")
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Could not update step." }
+    }
+    redirect("/onboarding/theme")
+  }
 
   const { error } = await supabase.from("teams").insert({
-    workspace_id: membership.workspace_id,
+    workspace_id: workspace.id,
     name,
     key,
   })
@@ -114,7 +148,12 @@ export async function saveTeam(
     return { error: error.message }
   }
 
-  await setStep(user.id, "theme")
+  try {
+    await setStep(user.id, "theme")
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Could not update step." }
+  }
+
   redirect("/onboarding/theme")
 }
 
@@ -147,14 +186,8 @@ export async function saveInvites(
   const skip = formData.get("skip") === "1"
 
   const supabase = await createClient()
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle()
-
-  if (!membership) return { error: "Create a workspace first." }
+  const workspace = await getPrimaryWorkspace(user.id)
+  if (!workspace) return { error: "Create a workspace first." }
 
   if (!skip && raw.trim()) {
     const emails = [
@@ -162,13 +195,18 @@ export async function saveInvites(
         raw
           .split(/[\s,;]+/)
           .map((e) => e.trim().toLowerCase())
-          .filter((e) => e.includes("@"))
+          .filter(Boolean)
       ),
     ]
 
+    const invalid = emails.filter((email) => !isValidEmail(email))
+    if (invalid.length) {
+      return { error: `Invalid email(s): ${invalid.slice(0, 3).join(", ")}` }
+    }
+
     if (emails.length) {
       const rows = emails.map((email) => ({
-        workspace_id: membership.workspace_id,
+        workspace_id: workspace.id,
         email,
         role: "member" as const,
         invited_by: user.id,
@@ -178,12 +216,11 @@ export async function saveInvites(
     }
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("slug")
-    .eq("id", membership.workspace_id)
-    .single()
+  try {
+    await setStep(user.id, "done")
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Could not finish onboarding." }
+  }
 
-  await setStep(user.id, "done")
-  redirect(`/w/${workspace?.slug ?? "app"}/issues`)
+  redirect(`/w/${workspace.slug}/issues`)
 }

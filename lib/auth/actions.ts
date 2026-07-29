@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import { getPrimaryWorkspace, onboardingPath } from "@/lib/auth/session"
+import { safeInternalPath } from "@/lib/validation"
 
 export type AuthState = {
   error?: string
@@ -22,7 +23,7 @@ export async function signUp(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -31,6 +32,13 @@ export async function signUp(
   })
 
   if (error) return { error: error.message }
+
+  if (!data.session) {
+    return {
+      error:
+        "Account created. Confirm your email, then sign in to continue onboarding.",
+    }
+  }
 
   redirect("/onboarding/profile")
 }
@@ -41,6 +49,7 @@ export async function signIn(
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase()
   const password = String(formData.get("password") ?? "")
+  const next = safeInternalPath(String(formData.get("next") ?? ""))
 
   if (!email || !password) {
     return { error: "Email and password are required." }
@@ -65,6 +74,10 @@ export async function signIn(
       onboardingPath(profile?.onboarding_step ?? "profile") ??
         "/onboarding/profile"
     )
+  }
+
+  if (next?.startsWith("/w/") || next?.startsWith("/onboarding")) {
+    redirect(next)
   }
 
   const workspace = await getPrimaryWorkspace(data.user.id)

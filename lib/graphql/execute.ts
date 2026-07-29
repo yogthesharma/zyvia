@@ -1,14 +1,16 @@
-import { execute, parse, type ExecutionResult } from "graphql"
+import { execute, parse, type ExecutionResult, type GraphQLSchema } from "graphql"
+import { redirect } from "next/navigation"
 
 import { createContext } from "@/lib/graphql/context"
 import { buildSchema } from "@/lib/graphql/schema"
+
+/** Built once in this module so schema + execute share one graphql realm. */
+const schema: GraphQLSchema = buildSchema()
 
 export async function executeGraphQL<TData = Record<string, unknown>>(
   source: string,
   variableValues?: Record<string, unknown>
 ): Promise<TData> {
-  // Build in this module graph so schema + execute share one `graphql` realm.
-  const schema = buildSchema()
   const contextValue = await createContext()
   const result = (await execute({
     schema,
@@ -18,7 +20,12 @@ export async function executeGraphQL<TData = Record<string, unknown>>(
   })) as ExecutionResult<TData>
 
   if (result.errors?.length) {
-    throw result.errors[0]
+    const first = result.errors[0]
+    const code = first.extensions?.code
+    if (code === "UNAUTHORIZED" || /unauthorized/i.test(first.message)) {
+      redirect("/login")
+    }
+    throw first
   }
 
   if (!result.data) {

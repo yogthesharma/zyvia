@@ -16,11 +16,12 @@ import { signIn, type AuthState } from "@/lib/auth/actions"
 
 const initial: AuthState = {}
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string | null }) {
   const [state, action, pending] = useActionState(signIn, initial)
 
   return (
     <form action={action} className="flex flex-col gap-6">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>

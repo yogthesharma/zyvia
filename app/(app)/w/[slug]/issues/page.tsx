@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, unstable_rethrow } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -33,15 +33,23 @@ export default async function IssuesPage({
 }) {
   const { slug } = await params
 
-  const data = await executeGraphQL<WorkspaceIssuesData>(WorkspaceIssuesQuery, {
-    slug,
-    limit: 100,
-  })
+  let data: WorkspaceIssuesData | null = null
+  let loadError: string | null = null
 
-  const workspace = data.workspace
-  if (!workspace) notFound()
+  try {
+    data = await executeGraphQL<WorkspaceIssuesData>(WorkspaceIssuesQuery, {
+      slug,
+      limit: 100,
+    })
+  } catch (error) {
+    unstable_rethrow(error)
+    console.error("Failed to load issues", error)
+    loadError = "Could not load issues. Try refreshing the page."
+  }
 
-  const issues = workspace.issues
+  if (!loadError && !data?.workspace) notFound()
+
+  const issues = data?.workspace?.issues ?? []
 
   return (
     <div className="flex flex-1 flex-col">
@@ -49,14 +57,21 @@ export default async function IssuesPage({
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Issues</h1>
           <p className="text-sm text-muted-foreground">
-            {issues.length
-              ? `${issues.length} issue${issues.length === 1 ? "" : "s"}`
-              : "No issues yet — create your first one soon."}
+            {loadError
+              ? loadError
+              : issues.length
+                ? `${issues.length} issue${issues.length === 1 ? "" : "s"}`
+                : "No issues yet — create your first one soon."}
           </p>
         </div>
       </div>
       <Separator />
-      {!issues.length ? (
+      {loadError ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-24 text-center">
+          <p className="text-sm font-medium">Something went wrong</p>
+          <p className="max-w-sm text-sm text-muted-foreground">{loadError}</p>
+        </div>
+      ) : !issues.length ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-24 text-center">
           <p className="text-sm font-medium">Your issue list is empty</p>
           <p className="max-w-sm text-sm text-muted-foreground">

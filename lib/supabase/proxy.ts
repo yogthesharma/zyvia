@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 import { getSupabaseEnv } from "@/lib/supabase/env"
+import { safeInternalPath } from "@/lib/validation"
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -31,6 +32,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
+  const userId = typeof user?.sub === "string" ? user.sub : null
   const { pathname } = request.nextUrl
 
   const isAuthPage = pathname === "/login" || pathname === "/signup"
@@ -40,13 +42,62 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = "/login"
-    redirectUrl.searchParams.set("next", pathname)
+    const next = safeInternalPath(pathname)
+    if (next) redirectUrl.searchParams.set("next", next)
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && isAuthPage) {
+  if (user && userId && isAuthPage) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_step, onboarding_completed_at")
+      .eq("id", userId)
+      .maybeSingle()
+
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = "/onboarding/profile"
+
+    if (profile?.onboarding_step === "done" && profile.onboarding_completed_at) {
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      if (membership) {
+        const { data: workspace } = await supabase
+          .from("workspaces")
+          .select("slug")
+          .eq("id", membership.workspace_id)
+          .maybeSingle()
+
+        if (workspace?.slug) {
+          redirectUrl.pathname = `/w/${workspace.slug}/issues`
+          redirectUrl.search = ""
+          return NextResponse.redirect(redirectUrl)
+        }
+      }
+
+      redirectUrl.pathname = "/onboarding/workspace"
+      redirectUrl.search = ""
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    const step = profile?.onboarding_step ?? "profile"
+    const stepPath =
+      step === "workspace"
+        ? "/onboarding/workspace"
+        : step === "team"
+          ? "/onboarding/team"
+          : step === "theme"
+            ? "/onboarding/theme"
+            : step === "invite"
+              ? "/onboarding/invite"
+              : "/onboarding/profile"
+
+    redirectUrl.pathname = stepPath
+    redirectUrl.search = ""
     return NextResponse.redirect(redirectUrl)
   }
 

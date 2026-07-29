@@ -40,6 +40,14 @@ export type IssueRow = {
   creator_id: string | null
   created_at: string
   updated_at: string
+  /** Prefetched relations (avoids N+1 on list queries) */
+  team?: TeamRow | null
+  status?: WorkflowStateRow | null
+}
+
+function asOne<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null
+  return Array.isArray(value) ? (value[0] ?? null) : value
 }
 
 export function registerWorkspace(builder: Builder) {
@@ -75,14 +83,30 @@ export function registerWorkspace(builder: Builder) {
           const { data, error } = await ctx.supabase
             .from("issues")
             .select(
-              "id, workspace_id, team_id, number, title, description, status_id, priority, assignee_id, creator_id, created_at, updated_at"
+              `
+              id, workspace_id, team_id, number, title, description, status_id,
+              priority, assignee_id, creator_id, created_at, updated_at,
+              team:teams(id, workspace_id, name, key, issue_counter),
+              status:workflow_states(id, team_id, name, category, position, is_default, color)
+            `
             )
             .eq("workspace_id", workspace.id)
             .order("created_at", { ascending: false })
             .limit(args.limit ?? 100)
 
           if (error) throw new GraphQLError(error.message)
-          return data ?? []
+
+          return (data ?? []).map((row) => {
+            const team = asOne(row.team as TeamRow | TeamRow[] | null)
+            const status = asOne(
+              row.status as WorkflowStateRow | WorkflowStateRow[] | null
+            )
+            return {
+              ...row,
+              team,
+              status,
+            } as IssueRow
+          })
         },
       }),
     }),
@@ -119,6 +143,7 @@ export function registerWorkspace(builder: Builder) {
       updatedAt: t.expose("updated_at", { type: "DateTime" }),
       identifier: t.string({
         resolve: async (issue, _args, ctx) => {
+          if (issue.team?.key) return `${issue.team.key}-${issue.number}`
           const { data } = await ctx.supabase
             .from("teams")
             .select("key")
@@ -131,6 +156,7 @@ export function registerWorkspace(builder: Builder) {
         type: TeamRef,
         nullable: true,
         resolve: async (issue, _args, ctx) => {
+          if (issue.team) return issue.team
           const { data, error } = await ctx.supabase
             .from("teams")
             .select("id, workspace_id, name, key, issue_counter")
@@ -144,6 +170,7 @@ export function registerWorkspace(builder: Builder) {
         type: WorkflowStateRef,
         nullable: true,
         resolve: async (issue, _args, ctx) => {
+          if (issue.status) return issue.status
           const { data, error } = await ctx.supabase
             .from("workflow_states")
             .select(
@@ -210,6 +237,23 @@ export function registerWorkspace(builder: Builder) {
         const title = args.input.title.trim()
         if (!title) throw new GraphQLError("Title is required")
 
+        const priority = args.input.priority ?? 0
+        if (priority < 0 || priority > 4) {
+          throw new GraphQLError("Priority must be between 0 and 4")
+        }
+
+        const { data: team, error: teamError } = await ctx.supabase
+          .from("teams")
+          .select("id, workspace_id")
+          .eq("id", args.input.teamId)
+          .maybeSingle()
+
+        if (teamError) throw new GraphQLError(teamError.message)
+        if (!team) throw new GraphQLError("Team not found")
+        if (team.workspace_id !== args.input.workspaceId) {
+          throw new GraphQLError("Team does not belong to workspace")
+        }
+
         const { data: defaultStatus, error: statusError } = await ctx.supabase
           .from("workflow_states")
           .select("id")
@@ -229,18 +273,28 @@ export function registerWorkspace(builder: Builder) {
             team_id: args.input.teamId,
             title,
             description: args.input.description ?? null,
-            priority: args.input.priority ?? 0,
+            priority,
             status_id: defaultStatus.id,
             creator_id: ctx.user.id,
             number: 0,
           })
           .select(
-            "id, workspace_id, team_id, number, title, description, status_id, priority, assignee_id, creator_id, created_at, updated_at"
+            `
+            id, workspace_id, team_id, number, title, description, status_id,
+            priority, assignee_id, creator_id, created_at, updated_at,
+            team:teams(id, workspace_id, name, key, issue_counter),
+            status:workflow_states(id, team_id, name, category, position, is_default, color)
+          `
           )
           .single()
 
         if (error) throw new GraphQLError(error.message)
-        return data
+
+        return {
+          ...data,
+          team: asOne(data.team as TeamRow | TeamRow[] | null),
+          status: asOne(data.status as WorkflowStateRow | WorkflowStateRow[] | null),
+        } as IssueRow
       },
     })
   )
