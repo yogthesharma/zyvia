@@ -1,4 +1,6 @@
 @import "tailwindcss";
+
+@plugin "tailwind-scrollbar-hide";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -37,6 +39,8 @@
     --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
     --sidebar-border: oklch(0.925 0.005 214.3);
     --sidebar-ring: oklch(0.723 0.014 214.4);
+    --highlight: oklch(0.852 0.199 91.936);
+    --brand: oklch(0.623 0.214 259.815);
 }
 
 .dark {
@@ -71,6 +75,8 @@
     --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.56 0.021 213.5);
+    --highlight: oklch(0.852 0.199 91.936);
+    --brand: oklch(0.707 0.165 254.624);
 }
 
 @theme inline {
@@ -115,11 +121,35 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --color-brand: var(--brand);
+    --color-highlight: var(--highlight);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+    }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+    }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+    }
+  *::-webkit-scrollbar-button,
+  *::-webkit-scrollbar-corner {
+    display: none;
+    width: 0;
+    height: 0;
     }
   body {
     @apply bg-background text-foreground;
