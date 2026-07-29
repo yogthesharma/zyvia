@@ -24,6 +24,19 @@
 1. Connect always toasts “Coming soon” (no half-wired OAuth).
 2. Don’t show a fake Connected GitHub state without a real account link.
 
+## Agent personalization
+
+1. Guidance saves on blur; empty guidance is allowed; max 10_000 chars (client + server).
+2. Guidance no-op when unchanged after normalize; pending blur ignores `initialSettings` clobber.
+3. Concurrent guidance saves use request ids; only the latest response applies / rolls back.
+4. Skill create/edit requires a non-empty name; instructions may be empty; primary action disabled until name is set.
+5. Skill name ≤ 120 / instructions ≤ 20_000 (client maxLength + server parse).
+6. Edit with no changes does not bump `updated_at`; client navigates back without a write.
+7. Invalid / foreign skill ids → `notFound()` (UUID check before query; soft-fail page errors).
+8. Skill redirects only use validated workspace slugs (no open redirect via `workspaceSlug`).
+9. Skill rows show relative “Updated …” on the right; list ordered by `updated_at` desc.
+10. MCP connectors section is omitted for now.
+
 ## Teams
 
 1. **Creator membership** — creating a team always inserts the creator as team `owner`; onboarding does the same.
