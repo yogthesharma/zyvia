@@ -84,7 +84,8 @@ function MemberNameCell({ member }: { member: TeamMemberRow }) {
 
 function createColumns(options: {
   canManage: boolean
-  viewerUserId: string | null
+  canAssignOwner: boolean
+  viewerUserId: string
   busyUserId: string | null
   onChangeRole: (member: TeamMemberRow, role: "owner" | "admin" | "member") => void
   onRemove: (member: TeamMemberRow) => void
@@ -122,10 +123,10 @@ function createColumns(options: {
           teamRole: member.teamRole,
           workspaceRole: member.workspaceRole,
         })
-        const elevated =
-          member.workspaceRole === "owner" || member.workspaceRole === "admin"
+        const isSelf = member.userId === options.viewerUserId
+        const showMenu = options.canManage || isSelf
 
-        if (!options.canManage || elevated) {
+        if (!showMenu) {
           return <Badge variant="outline">{label}</Badge>
         }
 
@@ -144,29 +145,33 @@ function createColumns(options: {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem
-                onClick={() => options.onChangeRole(member, "member")}
-              >
-                Member
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => options.onChangeRole(member, "admin")}
-              >
-                Admin
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => options.onChangeRole(member, "owner")}
-              >
-                Owner
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {options.canManage ? (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => options.onChangeRole(member, "member")}
+                  >
+                    Member
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => options.onChangeRole(member, "admin")}
+                  >
+                    Admin
+                  </DropdownMenuItem>
+                  {options.canAssignOwner ? (
+                    <DropdownMenuItem
+                      onClick={() => options.onChangeRole(member, "owner")}
+                    >
+                      Owner
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuSeparator />
+                </>
+              ) : null}
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => options.onRemove(member)}
               >
-                {member.userId === options.viewerUserId
-                  ? "Leave team"
-                  : "Remove from team"}
+                {isSelf ? "Leave team" : "Remove from team"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -193,13 +198,20 @@ export function TeamMembersSettings({
   const [adding, setAdding] = React.useState(false)
   const [busyUserId, setBusyUserId] = React.useState<string | null>(null)
 
+  const canAssignOwner =
+    initial.viewerWorkspaceRole === "owner" ||
+    initial.viewerWorkspaceRole === "admin" ||
+    initial.viewerTeamRole === "owner"
+
   const columns = React.useMemo(
     () =>
       createColumns({
         canManage: initial.canManage,
+        canAssignOwner,
         viewerUserId,
         busyUserId,
         onChangeRole: (member, role) => {
+          if (member.teamRole === role) return
           void (async () => {
             setBusyUserId(member.userId)
             const result = await updateTeamMemberRole({
@@ -242,6 +254,7 @@ export function TeamMembersSettings({
       }),
     [
       busyUserId,
+      canAssignOwner,
       initial.canManage,
       initial.teamId,
       initial.workspaceId,

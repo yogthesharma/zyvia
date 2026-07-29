@@ -335,10 +335,16 @@ export function MembersSettingsList({
       toast.error(result.error, { id: TOAST_ID })
       return
     }
+    const invited = result.invitedCount ?? 0
+    const skipped = result.skippedCount ?? 0
     toast.success(
-      result.invitedCount === 1
-        ? "Invite saved"
-        : `${result.invitedCount} invites saved`,
+      skipped
+        ? invited === 1
+          ? `Invite saved · ${skipped} skipped`
+          : `${invited} invites saved · ${skipped} skipped`
+        : invited === 1
+          ? "Invite saved"
+          : `${invited} invites saved`,
       { id: TOAST_ID }
     )
     setEmailsRaw("")
@@ -417,7 +423,9 @@ export function MembersSettingsList({
         </div>
       ) : null}
 
-      {filter !== "active" ? (
+      {filter === "pending" ||
+      filteredInvites.length > 0 ||
+      (filter === "all" && initial.pendingInvites.length > 0) ? (
         <DataTable
           columns={inviteColumns}
           data={filteredInvites}

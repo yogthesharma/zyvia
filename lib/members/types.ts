@@ -70,6 +70,7 @@ export type TeamMembersPageData = {
 export type MembersActionResult = {
   error?: string
   invitedCount?: number
+  skippedCount?: number
   revoked?: boolean
   addedCount?: number
   removed?: boolean

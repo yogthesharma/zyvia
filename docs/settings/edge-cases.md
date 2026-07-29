@@ -80,14 +80,18 @@
 ## Members
 
 1. **Workspace list** — any member can view; invite/revoke/export only for owner/admin; members soft-fail to `notFound()` on query errors.
-2. **Invites** — emails lowercased + validated; skip already-members and pending duplicates; max 50 per batch; cannot invite as owner; email delivery deferred (pending rows only).
+2. **Invites** — emails lowercased + validated; skip already-members and pending duplicates; max 50 per batch; cannot invite as owner; invalid role rejected (no silent default); email delivery deferred (pending rows only); partial batches report invited + skipped counts.
 3. **Revoke** — only pending invites; idempotent miss → “Invite not found.”
-4. **Team add** — candidates are workspace members not already on the team; team managers or workspace admins only; insert role defaults to member (not owner).
+4. **Team add** — candidates are workspace members not already on the team; team managers or workspace admins only; insert role defaults to member (not owner); invalid role rejected.
 5. **Sole team owner** — cannot remove or demote the last owner.
-6. **Role display** — workspace owner/admin show as “Workspace owner/admin” on team list (read-only badge); team roles editable for non-elevated members.
-7. **Last seen** — approximated from max session activity; “Online” within 5 minutes; empty → “—”.
-8. **Deletion scheduled** — workspace invites blocked while deletion is scheduled.
-9. **Directory RPC** — emails/last-seen only for callers who are workspace members (`workspace_member_directory`).
+6. **Role display vs manage** — workspace owner/admin still show as “Workspace owner/admin”, but managers can open the role menu (change team role / remove). Non-managers can open their own row menu to leave.
+7. **Assign owner** — only team owners or workspace owner/admin can promote to team owner; team admins cannot.
+8. **Role no-op** — unchanged role short-circuits (no write / no toast).
+9. **Last seen** — approximated from max session activity; “Online” within 5 minutes; empty → “—”.
+10. **Deletion scheduled** — workspace invites blocked while deletion is scheduled.
+11. **Directory RPC** — emails/last-seen only for callers who are workspace members (`workspace_member_directory`).
+12. **Pending section** — hidden on All when there are zero invites; always available via Pending invites filter.
+13. **Deferred work** — email delivery, accept flow, Applications, workspace role/remove UI, etc. are listed in `members.md` (do not treat as missing bugs).
 
 ## Documents
 

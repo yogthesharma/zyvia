@@ -13,6 +13,7 @@ import type { WorkspaceRole } from "@/lib/workspace/types"
 type Authed = {
   userId: string
   workspaceRole: WorkspaceRole
+  deletionScheduledAt: string | null
   supabase: Awaited<ReturnType<typeof createClient>>
 }
 
@@ -51,6 +52,7 @@ async function requireWorkspaceAccess(
   return {
     userId: user.id,
     workspaceRole: membership.role as WorkspaceRole,
+    deletionScheduledAt: workspace.deletion_scheduled_at,
     supabase,
   }
 }
@@ -63,6 +65,39 @@ function isError(
 
 function canManageWorkspace(role: WorkspaceRole) {
   return role === "owner" || role === "admin"
+}
+
+async function loadTeamContext(
+  auth: Authed,
+  input: { workspaceId: string; teamId: string }
+) {
+  const { data: team, error: teamError } = await auth.supabase
+    .from("teams")
+    .select("id, workspace_id, deleted_at")
+    .eq("id", input.teamId)
+    .maybeSingle()
+  if (teamError) return { error: teamError.message }
+  if (!team || team.workspace_id !== input.workspaceId || team.deleted_at) {
+    return { error: "Team not found." }
+  }
+
+  const { data: viewerTeam } = await auth.supabase
+    .from("team_members")
+    .select("role")
+    .eq("team_id", input.teamId)
+    .eq("user_id", auth.userId)
+    .maybeSingle()
+
+  const viewerTeamRole =
+    (viewerTeam?.role as "owner" | "admin" | "member" | undefined) ?? null
+  const canManage =
+    canManageWorkspace(auth.workspaceRole) ||
+    viewerTeamRole === "owner" ||
+    viewerTeamRole === "admin"
+  const canAssignOwner =
+    canManageWorkspace(auth.workspaceRole) || viewerTeamRole === "owner"
+
+  return { team, viewerTeamRole, canManage, canAssignOwner }
 }
 
 export async function createWorkspaceInvites(input: {
@@ -79,47 +114,44 @@ export async function createWorkspaceInvites(input: {
   if (!canManageWorkspace(auth.workspaceRole)) {
     return { error: "Only owners and admins can invite members." }
   }
-
-  const { data: workspace } = await auth.supabase
-    .from("workspaces")
-    .select("deletion_scheduled_at")
-    .eq("id", input.workspaceId)
-    .maybeSingle()
-  if (workspace?.deletion_scheduled_at) {
+  if (auth.deletionScheduledAt) {
     return { error: "This workspace is scheduled for deletion." }
   }
 
-  const role = parseInviteRole(input.role) ?? "member"
+  const role = parseInviteRole(input.role)
+  if (!role) return { error: "Invalid invite role." }
+
   const parsed = parseInviteEmails(input.emailsRaw)
   if (parsed.error) return { error: parsed.error }
 
-  const { data: existingMembers } = await auth.supabase
-    .from("workspace_members")
-    .select("user_id")
-    .eq("workspace_id", input.workspaceId)
+  const { data: directory, error: directoryError } = await auth.supabase.rpc(
+    "workspace_member_directory",
+    { p_workspace_id: input.workspaceId }
+  )
+  if (directoryError) return { error: directoryError.message }
 
-  const memberIds = (existingMembers ?? []).map((row) => row.user_id)
-  let memberEmails = new Set<string>()
-  if (memberIds.length) {
-    const { data: directory } = await auth.supabase.rpc(
-      "workspace_member_directory",
-      { p_workspace_id: input.workspaceId }
+  const memberEmails = new Set(
+    ((directory ?? []) as { email: string }[]).map((row) =>
+      row.email.toLowerCase()
     )
-    memberEmails = new Set(
-      ((directory ?? []) as { email: string }[]).map((row) => row.email)
-    )
-  }
+  )
 
-  const { data: pending } = await auth.supabase
+  const { data: pending, error: pendingError } = await auth.supabase
     .from("invites")
     .select("email")
     .eq("workspace_id", input.workspaceId)
     .eq("status", "pending")
-  const pendingEmails = new Set((pending ?? []).map((row) => row.email))
+  if (pendingError) return { error: pendingError.message }
+
+  const pendingEmails = new Set(
+    (pending ?? []).map((row) => row.email.toLowerCase())
+  )
 
   const fresh = parsed.emails.filter(
     (email) => !memberEmails.has(email) && !pendingEmails.has(email)
   )
+  const skippedCount = parsed.emails.length - fresh.length
+
   if (!fresh.length) {
     return {
       error:
@@ -143,7 +175,7 @@ export async function createWorkspaceInvites(input: {
     return { error: error.message }
   }
 
-  return { invitedCount: rows.length }
+  return { invitedCount: rows.length, skippedCount }
 }
 
 export async function revokeWorkspaceInvite(input: {
@@ -189,33 +221,18 @@ export async function addTeamMembers(input: {
   if (isError(auth)) return auth
   if (!isUuid(input.teamId)) return { error: "Team not found." }
 
-  const role = parseTeamMemberRole(input.role) ?? "member"
+  const role = input.role == null ? "member" : parseTeamMemberRole(input.role)
+  if (!role) return { error: "Invalid role." }
   if (role === "owner") {
     return { error: "Use transfer ownership instead of inviting as owner." }
   }
 
-  const { data: team, error: teamError } = await auth.supabase
-    .from("teams")
-    .select("id, workspace_id, deleted_at")
-    .eq("id", input.teamId)
-    .maybeSingle()
-  if (teamError) return { error: teamError.message }
-  if (!team || team.workspace_id !== input.workspaceId || team.deleted_at) {
-    return { error: "Team not found." }
-  }
-
-  const { data: viewerTeam } = await auth.supabase
-    .from("team_members")
-    .select("role")
-    .eq("team_id", input.teamId)
-    .eq("user_id", auth.userId)
-    .maybeSingle()
-
-  const canManage =
-    canManageWorkspace(auth.workspaceRole) ||
-    viewerTeam?.role === "owner" ||
-    viewerTeam?.role === "admin"
-  if (!canManage) {
+  const ctx = await loadTeamContext(auth, {
+    workspaceId: input.workspaceId,
+    teamId: input.teamId,
+  })
+  if ("error" in ctx) return { error: ctx.error }
+  if (!ctx.canManage) {
     return { error: "Only team managers can add members." }
   }
 
@@ -277,30 +294,14 @@ export async function removeTeamMember(input: {
     return { error: "Member not found." }
   }
 
-  const { data: team, error: teamError } = await auth.supabase
-    .from("teams")
-    .select("id, workspace_id, deleted_at")
-    .eq("id", input.teamId)
-    .maybeSingle()
-  if (teamError) return { error: teamError.message }
-  if (!team || team.workspace_id !== input.workspaceId || team.deleted_at) {
-    return { error: "Team not found." }
-  }
-
-  const { data: viewerTeam } = await auth.supabase
-    .from("team_members")
-    .select("role")
-    .eq("team_id", input.teamId)
-    .eq("user_id", auth.userId)
-    .maybeSingle()
+  const ctx = await loadTeamContext(auth, {
+    workspaceId: input.workspaceId,
+    teamId: input.teamId,
+  })
+  if ("error" in ctx) return { error: ctx.error }
 
   const removingSelf = input.userId === auth.userId
-  const canManage =
-    canManageWorkspace(auth.workspaceRole) ||
-    viewerTeam?.role === "owner" ||
-    viewerTeam?.role === "admin"
-
-  if (!removingSelf && !canManage) {
+  if (!removingSelf && !ctx.canManage) {
     return { error: "Only team managers can remove members." }
   }
 
@@ -352,29 +353,16 @@ export async function updateTeamMemberRole(input: {
   const role = parseTeamMemberRole(input.role)
   if (!role) return { error: "Invalid role." }
 
-  const { data: team, error: teamError } = await auth.supabase
-    .from("teams")
-    .select("id, workspace_id, deleted_at")
-    .eq("id", input.teamId)
-    .maybeSingle()
-  if (teamError) return { error: teamError.message }
-  if (!team || team.workspace_id !== input.workspaceId || team.deleted_at) {
-    return { error: "Team not found." }
-  }
-
-  const { data: viewerTeam } = await auth.supabase
-    .from("team_members")
-    .select("role")
-    .eq("team_id", input.teamId)
-    .eq("user_id", auth.userId)
-    .maybeSingle()
-
-  const canManage =
-    canManageWorkspace(auth.workspaceRole) ||
-    viewerTeam?.role === "owner" ||
-    viewerTeam?.role === "admin"
-  if (!canManage) {
+  const ctx = await loadTeamContext(auth, {
+    workspaceId: input.workspaceId,
+    teamId: input.teamId,
+  })
+  if ("error" in ctx) return { error: ctx.error }
+  if (!ctx.canManage) {
     return { error: "Only team managers can change roles." }
+  }
+  if (role === "owner" && !ctx.canAssignOwner) {
+    return { error: "Only team owners can assign ownership." }
   }
 
   const { data: target } = await auth.supabase
@@ -384,6 +372,7 @@ export async function updateTeamMemberRole(input: {
     .eq("user_id", input.userId)
     .maybeSingle()
   if (!target) return { error: "Member not found." }
+  if (target.role === role) return {}
 
   if (target.role === "owner" && role !== "owner") {
     const { count } = await auth.supabase
