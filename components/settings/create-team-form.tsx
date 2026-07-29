@@ -88,191 +88,196 @@ export function CreateTeamForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto w-full max-w-3xl px-8 pt-8 pb-8">
+    <div className="relative min-h-full">
       <Link
         href={`/w/${workspaceSlug}/settings/teams`}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeftIcon className="size-3.5" />
         Back
       </Link>
 
-      <header className="mb-8">
-        <h1 className="text-xl font-semibold tracking-tight">
-          Create a new team
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Create a new team to manage separate cycles, workflows, and
-          notifications.
-        </p>
-      </header>
+      <form
+        onSubmit={onSubmit}
+        className="mx-auto w-full max-w-3xl px-8 pt-12 pb-8"
+      >
+        <header className="mb-8">
+          <h1 className="text-xl font-semibold tracking-tight">
+            Create a new team
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create a new team to manage separate cycles, workflows, and
+            notifications.
+          </p>
+        </header>
 
-      <div className="space-y-10">
-        <SettingsSection>
-          <SettingsRow
-            label="Icon & Name"
-            control={
-              <div className="flex w-full max-w-sm items-center gap-2">
-                <IconPicker
-                  value={icon}
-                  onValueChange={(next) => setIcon(next)}
-                  searchable
-                  categorized
-                  modal
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-9 shrink-0"
-                    aria-label="Choose team icon"
+        <div className="space-y-10">
+          <SettingsSection>
+            <SettingsRow
+              label="Icon & Name"
+              control={
+                <div className="flex h-8 w-full max-w-sm items-stretch gap-2">
+                  <IconPicker
+                    value={icon}
+                    onValueChange={(next) => setIcon(next)}
+                    searchable
+                    categorized
+                    modal
                   >
-                    <Icon name={icon} className="size-4" />
-                  </Button>
-                </IconPicker>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-8 shrink-0"
+                      aria-label="Choose team icon"
+                    >
+                      <Icon name={icon} className="size-4" />
+                    </Button>
+                  </IconPicker>
+                  <Input
+                    value={name}
+                    placeholder="e.g. Engineering"
+                    maxLength={80}
+                    disabled={pending}
+                    className="h-8 flex-1"
+                    autoFocus
+                    onChange={(event) => {
+                      const next = event.target.value
+                      setName(next)
+                      if (!keyTouched) setKey(teamKeyFromName(next))
+                    }}
+                  />
+                </div>
+              }
+            />
+            <SettingsRow
+              label="Identifier"
+              description="Used to identify issues from this team (e.g. ENG-123)"
+              control={
                 <Input
-                  value={name}
-                  placeholder="e.g. Engineering"
-                  maxLength={80}
+                  value={key}
+                  placeholder="e.g. ENG"
+                  maxLength={4}
                   disabled={pending}
-                  className="flex-1"
-                  autoFocus
+                  className="h-8 w-28 uppercase"
                   onChange={(event) => {
-                    const next = event.target.value
-                    setName(next)
-                    if (!keyTouched) setKey(teamKeyFromName(next))
+                    setKeyTouched(true)
+                    setKey(
+                      event.target.value
+                        .toUpperCase()
+                        .replace(/[^A-Z]/g, "")
+                        .slice(0, 4)
+                    )
                   }}
                 />
-              </div>
-            }
-          />
-          <SettingsRow
-            label="Identifier"
-            description="Used to identify issues from this team (e.g. ENG-123)"
-            control={
-              <Input
-                value={key}
-                placeholder="e.g. ENG"
-                maxLength={4}
-                disabled={pending}
-                className="w-28 font-mono uppercase"
-                onChange={(event) => {
-                  setKeyTouched(true)
-                  setKey(
-                    event.target.value
-                      .toUpperCase()
-                      .replace(/[^A-Z]/g, "")
-                      .slice(0, 4)
-                  )
-                }}
-              />
-            }
-          />
-          <SettingsRow
-            label="Parent team"
-            control={
-              <span className="text-sm text-muted-foreground">
-                Available on Business
-              </span>
-            }
-          />
-        </SettingsSection>
+              }
+            />
+            <SettingsRow
+              label="Parent team"
+              control={
+                <span className="text-sm text-muted-foreground">
+                  Available on Business
+                </span>
+              }
+            />
+          </SettingsSection>
 
-        <SettingsSection title="Team access">
-          <div className="px-4 py-3.5">
-            <p className="text-sm text-muted-foreground">
-              Control who can access the team and its content. Private teams are
-              visible only to team members and workspace admins.
-            </p>
+          <SettingsSection title="Team access">
+            <div className="px-4 py-3.5">
+              <p className="text-sm text-muted-foreground">
+                Control who can access the team and its content. Private teams
+                are visible only to team members and workspace admins.
+              </p>
+            </div>
+            <SettingsRow
+              label="Change team access"
+              control={
+                <span className="text-sm text-muted-foreground">
+                  Available on Business
+                </span>
+              }
+            />
+          </SettingsSection>
+
+          <SettingsSection title="Timezone">
+            <div className="px-4 py-3.5">
+              <p className="text-sm text-muted-foreground">
+                Used for team schedules, dates, and cycle start times.
+              </p>
+            </div>
+            <SettingsRow
+              label="Timezone"
+              control={
+                <Select
+                  value={timezone}
+                  disabled={pending}
+                  onValueChange={(value) => {
+                    if (value) setTimezone(value)
+                  }}
+                >
+                  <SelectTrigger className="w-full max-w-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zones.map((zone) => (
+                      <SelectItem key={zone} value={zone}>
+                        {formatTimezoneLabel(zone)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              }
+            />
+          </SettingsSection>
+
+          <SettingsSection title="Copy settings from existing team">
+            <div className="px-4 py-3.5">
+              <p className="text-sm text-muted-foreground">
+                Copy workflows, cycle, and team settings from another team. Team
+                members and Slack notification settings won&apos;t be copied.
+              </p>
+            </div>
+            <SettingsRow
+              label="Copy from team"
+              control={
+                <Select
+                  value={copyFrom}
+                  disabled={pending || existingTeams.length === 0}
+                  onValueChange={(value) => {
+                    if (value) setCopyFrom(value)
+                  }}
+                >
+                  <SelectTrigger className="w-full max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Don&apos;t copy</SelectItem>
+                    {existingTeams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              }
+            />
+          </SettingsSection>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="submit"
+              disabled={
+                pending ||
+                !name.trim() ||
+                key.length < 2 ||
+                key.length > 4
+              }
+            >
+              {pending ? "Creating…" : "Create team"}
+            </Button>
           </div>
-          <SettingsRow
-            label="Change team access"
-            control={
-              <span className="text-sm text-muted-foreground">
-                Available on Business
-              </span>
-            }
-          />
-        </SettingsSection>
-
-        <SettingsSection title="Timezone">
-          <div className="px-4 py-3.5">
-            <p className="text-sm text-muted-foreground">
-              Used for team schedules, dates, and cycle start times.
-            </p>
-          </div>
-          <SettingsRow
-            label="Timezone"
-            control={
-              <Select
-                value={timezone}
-                disabled={pending}
-                onValueChange={(value) => {
-                  if (value) setTimezone(value)
-                }}
-              >
-                <SelectTrigger className="w-full max-w-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {zones.map((zone) => (
-                    <SelectItem key={zone} value={zone}>
-                      {formatTimezoneLabel(zone)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            }
-          />
-        </SettingsSection>
-
-        <SettingsSection title="Copy settings from existing team">
-          <div className="px-4 py-3.5">
-            <p className="text-sm text-muted-foreground">
-              Copy workflows, cycle, and team settings from another team. Team
-              members and Slack notification settings won&apos;t be copied.
-            </p>
-          </div>
-          <SettingsRow
-            label="Copy from team"
-            control={
-              <Select
-                value={copyFrom}
-                disabled={pending || existingTeams.length === 0}
-                onValueChange={(value) => {
-                  if (value) setCopyFrom(value)
-                }}
-              >
-                <SelectTrigger className="w-full max-w-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Don&apos;t copy</SelectItem>
-                  {existingTeams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            }
-          />
-        </SettingsSection>
-
-        <div className="flex justify-end pt-2">
-          <Button
-            type="submit"
-            disabled={
-              pending ||
-              !name.trim() ||
-              key.length < 2 ||
-              key.length > 4
-            }
-          >
-            {pending ? "Creating…" : "Create team"}
-          </Button>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   )
 }

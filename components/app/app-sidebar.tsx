@@ -22,6 +22,7 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react"
 
+import { TeamIcon } from "@/components/app/team-icon"
 import type { ShellTeam, ShellUser, ShellWorkspace } from "@/components/app/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -253,9 +254,7 @@ export function AppSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton className="[&>svg:last-child]:ml-auto">
-                            <div className="flex size-3.5 items-center justify-center rounded-sm bg-emerald-500/20 text-[9px] font-semibold text-emerald-400">
-                              {team.key.slice(0, 1)}
-                            </div>
+                            <TeamIcon icon={team.icon} fallback={team.key} />
                             <span className="truncate">{team.name}</span>
                             <CaretDownIcon className="size-3 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                           </SidebarMenuButton>

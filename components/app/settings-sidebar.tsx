@@ -33,6 +33,7 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react"
 
+import { TeamIcon } from "@/components/app/team-icon"
 import type { ShellTeam, ShellWorkspace } from "@/components/app/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -233,9 +234,11 @@ export function SettingsSidebar({
                         : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                     )}
                   >
-                    <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-emerald-500/20 text-[9px] font-semibold text-emerald-400">
-                      {team.key.slice(0, 1)}
-                    </span>
+                    <TeamIcon
+                      icon={team.icon}
+                      fallback={team.key}
+                      className="size-4"
+                    />
                     <span className="truncate">{team.name}</span>
                   </Link>
                 ))
