@@ -35,30 +35,37 @@ const DEFAULT_WORKFLOW_STATES = [
   {
     name: "Todo",
     category: "unstarted",
-    position: 1,
+    position: 0,
     is_default: true,
     color: "#a78bfa",
   },
   {
     name: "In Progress",
     category: "started",
-    position: 2,
+    position: 0,
     is_default: false,
     color: "#60a5fa",
   },
   {
     name: "Done",
     category: "completed",
-    position: 3,
+    position: 0,
     is_default: false,
     color: "#34d399",
   },
   {
     name: "Canceled",
     category: "canceled",
-    position: 4,
+    position: 0,
     is_default: false,
     color: "#f87171",
+  },
+  {
+    name: "Duplicate",
+    category: "duplicate",
+    position: 0,
+    is_default: false,
+    color: "#94a3b8",
   },
 ] as const
 
@@ -124,6 +131,7 @@ async function seedDefaultWorkflowStates(
     DEFAULT_WORKFLOW_STATES.map((state) => ({
       team_id: teamId,
       name: state.name,
+      description: "",
       category: state.category,
       position: state.position,
       is_default: state.is_default,
@@ -135,6 +143,7 @@ async function seedDefaultWorkflowStates(
 function normalizeCopiedStates(
   sourceStates: {
     name: string
+    description?: string | null
     category: string
     position: number
     is_default: boolean
@@ -150,6 +159,7 @@ function normalizeCopiedStates(
     }
     return {
       name: state.name,
+      description: state.description ?? "",
       category: state.category,
       position: state.position,
       is_default: isDefault,
@@ -267,7 +277,7 @@ export async function createTeam(input: {
     if (copyFromId) {
       const { data: sourceStates, error: readStatesError } = await supabase
         .from("workflow_states")
-        .select("name, category, position, is_default, color")
+        .select("name, description, category, position, is_default, color")
         .eq("team_id", copyFromId)
         .order("position")
 
@@ -291,6 +301,7 @@ export async function createTeam(input: {
               rows.map((state) => ({
                 team_id: created.id,
                 name: state.name,
+                description: state.description,
                 category: state.category,
                 position: state.position,
                 is_default: state.is_default,

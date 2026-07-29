@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
   createAgentSkill,
+  createTeamAgentSkill,
   updateAgentSkill,
+  updateTeamAgentSkill,
 } from "@/lib/agent-personalization/actions"
 import {
   MAX_SKILL_INSTRUCTIONS_LENGTH,
@@ -25,23 +27,32 @@ const TOAST_ID = "agent-skill-form"
 export function AgentSkillForm({
   workspaceSlug,
   skill,
+  teamKey,
+  readOnly,
 }: {
   workspaceSlug: string
   skill?: AgentSkill
+  /** When set, create/edit a team skill instead of a personal skill. */
+  teamKey?: string
+  readOnly?: boolean
 }) {
   const router = useRouter()
   const isEdit = Boolean(skill)
+  const isTeam = Boolean(teamKey)
   const [name, setName] = React.useState(skill?.name ?? "")
   const [instructions, setInstructions] = React.useState(
     skill?.instructions ?? ""
   )
   const [pending, setPending] = React.useState(false)
 
-  const backHref = `/w/${workspaceSlug}/settings/agent-personalization`
+  const backHref = isTeam
+    ? `/w/${workspaceSlug}/settings/teams/${teamKey!.toLowerCase()}/agent-skills`
+    : `/w/${workspaceSlug}/settings/agent-personalization`
+  const backLabel = isTeam ? "Agent skills" : "Agent personalization"
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (pending) return
+    if (pending || readOnly) return
 
     const nextName = normalizeSkillName(name)
     const nextInstructions = normalizeSkillInstructions(instructions)
@@ -71,15 +82,22 @@ export function AgentSkillForm({
 
     setPending(true)
     try {
-      const result = isEdit
-        ? await updateAgentSkill(workspaceSlug, skill!.id, {
-            name: nextName,
-            instructions: nextInstructions,
-          })
-        : await createAgentSkill(workspaceSlug, {
-            name: nextName,
-            instructions: nextInstructions,
-          })
+      const payload = {
+        name: nextName,
+        instructions: nextInstructions,
+      }
+      const result = isTeam
+        ? isEdit
+          ? await updateTeamAgentSkill(
+              workspaceSlug,
+              teamKey!,
+              skill!.id,
+              payload
+            )
+          : await createTeamAgentSkill(workspaceSlug, teamKey!, payload)
+        : isEdit
+          ? await updateAgentSkill(workspaceSlug, skill!.id, payload)
+          : await createAgentSkill(workspaceSlug, payload)
 
       if (result.error) {
         toast.error(result.error, { id: TOAST_ID })
@@ -105,7 +123,7 @@ export function AgentSkillForm({
   }
 
   return (
-    <SettingsSubpage backHref={backHref} backLabel="Agent personalization">
+    <SettingsSubpage backHref={backHref} backLabel={backLabel}>
       <form
         onSubmit={onSubmit}
         className="mx-auto w-full max-w-3xl space-y-6 px-8 pt-12 pb-8"
@@ -113,14 +131,14 @@ export function AgentSkillForm({
         <input
           type="text"
           value={name}
-          disabled={pending}
+          disabled={pending || readOnly}
           maxLength={MAX_SKILL_NAME_LENGTH}
           placeholder="Skill name"
           aria-label="Skill name"
-          autoFocus
+          autoFocus={!readOnly}
           className={cn(
             "w-full bg-transparent text-3xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/50",
-            pending && "opacity-50"
+            (pending || readOnly) && "opacity-50"
           )}
           onChange={(event) => setName(event.target.value)}
         />
@@ -128,13 +146,13 @@ export function AgentSkillForm({
         <div data-slot="surface" className="overflow-hidden rounded-xl">
           <Textarea
             value={instructions}
-            disabled={pending}
+            disabled={pending || readOnly}
             maxLength={MAX_SKILL_INSTRUCTIONS_LENGTH}
             placeholder="Add instructions..."
             aria-label="Skill instructions"
             className={cn(
               "min-h-56 resize-y rounded-none border-0 bg-transparent focus-visible:ring-0",
-              pending && "opacity-50"
+              (pending || readOnly) && "opacity-50"
             )}
             onChange={(event) => setInstructions(event.target.value)}
           />
@@ -148,17 +166,19 @@ export function AgentSkillForm({
             disabled={pending}
             onClick={() => router.push(backHref)}
           >
-            Cancel
+            {readOnly ? "Back" : "Cancel"}
           </Button>
-          <Button type="submit" size="sm" disabled={pending || !name.trim()}>
-            {pending
-              ? isEdit
-                ? "Saving…"
-                : "Creating…"
-              : isEdit
-                ? "Save"
-                : "Create"}
-          </Button>
+          {!readOnly ? (
+            <Button type="submit" size="sm" disabled={pending || !name.trim()}>
+              {pending
+                ? isEdit
+                  ? "Saving…"
+                  : "Creating…"
+                : isEdit
+                  ? "Save"
+                  : "Create"}
+            </Button>
+          ) : null}
         </div>
       </form>
     </SettingsSubpage>

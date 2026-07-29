@@ -42,10 +42,17 @@ export type WorkflowState = {
   id: string
   team_id: string
   name: string
-  category: "backlog" | "unstarted" | "started" | "completed" | "canceled"
+  category:
+    | "backlog"
+    | "unstarted"
+    | "started"
+    | "completed"
+    | "canceled"
+    | "duplicate"
   position: number
   is_default: boolean
   color: string | null
+  description?: string
 }
 
 export type Issue = {

@@ -31,12 +31,13 @@ type TeamRow = {
   issues?: { count: number }[] | null
   team_members?: { count: number }[] | null
   workflow_states?: { count: number }[] | null
+  team_agent_skills?: { count: number }[] | null
 }
 
 const TEAM_LIST_SELECT =
   "id, workspace_id, name, key, icon, timezone, description, created_at, visibility, estimation_scale, allow_zero_estimates, extended_estimate_scale, count_unestimated_issues, parent_team_id, triage_enabled, email_intake_enabled, detailed_issue_history, retired_at, deleted_at, issues(count), team_members(count)"
 
-const TEAM_DETAIL_SELECT = `${TEAM_LIST_SELECT}, workflow_states(count)`
+const TEAM_DETAIL_SELECT = `${TEAM_LIST_SELECT}, workflow_states(count), team_agent_skills(count)`
 
 function mapSummary(row: TeamRow): TeamSummary {
   const retiredAt = row.retired_at
@@ -85,6 +86,7 @@ function mapSettings(
     emailIntakeEnabled: Boolean(row.email_intake_enabled),
     detailedIssueHistory: Boolean(row.detailed_issue_history),
     workflowStateCount: row.workflow_states?.[0]?.count ?? 0,
+    agentSkillCount: row.team_agent_skills?.[0]?.count ?? 0,
     membershipRole: membership.role,
     isMember,
     canManage,

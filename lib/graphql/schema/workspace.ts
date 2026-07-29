@@ -23,6 +23,7 @@ export type WorkflowStateRow = {
   id: string
   team_id: string
   name: string
+  description?: string | null
   category: string
   position: number
   is_default: boolean
@@ -52,7 +53,7 @@ const ISSUE_SELECT = `
   id, workspace_id, team_id, number, title, description, description_doc, status_id,
   priority, assignee_id, creator_id, created_at, updated_at,
   team:teams(id, workspace_id, name, key, issue_counter),
-  status:workflow_states(id, team_id, name, category, position, is_default, color)
+  status:workflow_states(id, team_id, name, description, category, position, is_default, color)
 `
 
 function asOne<T>(value: T | T[] | null | undefined): T | null {
@@ -145,6 +146,7 @@ export function registerWorkspace(builder: Builder) {
     fields: (t) => ({
       id: t.exposeID("id"),
       name: t.exposeString("name"),
+      description: t.exposeString("description", { nullable: true }),
       category: t.exposeString("category"),
       position: t.exposeInt("position"),
       isDefault: t.exposeBoolean("is_default"),
@@ -199,7 +201,7 @@ export function registerWorkspace(builder: Builder) {
           const { data, error } = await ctx.supabase
             .from("workflow_states")
             .select(
-              "id, team_id, name, category, position, is_default, color"
+              "id, team_id, name, description, category, position, is_default, color"
             )
             .eq("id", issue.status_id)
             .maybeSingle()

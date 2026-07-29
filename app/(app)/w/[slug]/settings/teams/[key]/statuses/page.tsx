@@ -4,19 +4,27 @@ import { notFound } from "next/navigation"
 import { StatusesSettingsForm } from "@/components/settings/statuses-settings-form"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import { getStatusesSettingsOrNull } from "@/lib/statuses/queries"
+import {
+  getTeamSettingsByKeyOrNull,
+  getWorkspaceBySlug,
+} from "@/lib/teams/queries"
 import { createClient } from "@/lib/supabase/server"
-import { getWorkspaceBySlug } from "@/lib/teams/queries"
-
-export const metadata: Metadata = { title: "Project statuses" }
 
 type PageProps = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; key: string }>
 }
 
-export default async function ProjectStatusesSettingsPage({
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { key } = await params
+  return { title: `Issue statuses · ${key.toUpperCase()} · Team` }
+}
+
+export default async function TeamIssueStatusesSettingsPage({
   params,
 }: PageProps) {
-  const { slug } = await params
+  const { slug, key } = await params
   const { user } = await requireCompletedOnboarding()
   const workspace = await getWorkspaceBySlug(slug)
   if (!workspace) notFound()
@@ -30,12 +38,26 @@ export default async function ProjectStatusesSettingsPage({
     .maybeSingle()
   if (!membership) notFound()
 
+  const team = await getTeamSettingsByKeyOrNull({
+    workspaceId: workspace.id,
+    key,
+    userId: user.id,
+  })
+  if (!team || team.status === "deleted") notFound()
+
   const settings = await getStatusesSettingsOrNull({
     slug,
     userId: user.id,
-    kind: "project",
+    kind: "issue",
+    teamId: team.id,
   })
   if (!settings) notFound()
 
-  return <StatusesSettingsForm initialSettings={settings} />
+  return (
+    <StatusesSettingsForm
+      initialSettings={settings}
+      backHref={`/w/${workspace.slug}/settings/teams/${team.key.toLowerCase()}`}
+      backLabel={team.name}
+    />
+  )
 }

@@ -14,10 +14,6 @@ const SECTIONS: Record<string, { title: string; description: string }> = {
     title: "Slack notifications",
     description: "Configure notifications for this team.",
   },
-  labels: {
-    title: "Issue labels",
-    description: "Manage issue labels for this team.",
-  },
   templates: {
     title: "Templates",
     description: "Manage templates for issues, documents, and projects.",
@@ -26,38 +22,22 @@ const SECTIONS: Record<string, { title: string; description: string }> = {
     title: "Recurring issues",
     description: "Manage automatic issue creation on a schedule.",
   },
-  statuses: {
-    title: "Issue statuses",
-    description: "Edit workflow statuses and categories.",
-  },
   workflows: {
     title: "Workflows & automations",
     description: "Automations for this team's issues and git workflows.",
-  },
-  triage: {
-    title: "Triage",
-    description: "Streamline requests from the rest of your organization.",
   },
   cycles: {
     title: "Cycles",
     description: "Focus your team's work over short, time-boxed windows.",
   },
-  agents: {
-    title: "Team agents",
-    description: "Guidance for how agents should operate within this team.",
-  },
-  "agent-skills": {
-    title: "Agent skills",
-    description: "Agent skills shared with this team.",
-  },
   "project-updates": {
     title: "Project updates",
     description: "Automatically generate updates from recent activity.",
   },
-  "thread-summaries": {
-    title: "Resolved thread summaries",
-    description: "Automatically generate summaries for resolved threads.",
-  },
+  // "thread-summaries": {
+  //   title: "Resolved thread summaries",
+  //   description: "Automatically generate summaries for resolved threads.",
+  // },
 }
 
 type PageProps = {

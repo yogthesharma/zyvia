@@ -37,6 +37,7 @@ export type TeamSettings = TeamSummary & {
   emailIntakeEnabled: boolean
   detailedIssueHistory: boolean
   workflowStateCount: number
+  agentSkillCount: number
   membershipRole: "owner" | "admin" | "member" | null
   /** Current user is on the team. */
   isMember: boolean

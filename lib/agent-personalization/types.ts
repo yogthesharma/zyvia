@@ -25,6 +25,11 @@ export type AgentSkill = {
   updatedAt: string
 }
 
+export type TeamAgentSkill = AgentSkill & {
+  workspaceId: string
+  teamId: string
+}
+
 export type AgentSkillInput = {
   name: string
   instructions: string
@@ -42,4 +47,19 @@ export type AgentSkillRow = {
   instructions: string
   created_at: string
   updated_at: string
+}
+
+export type TeamAgentSkillRow = AgentSkillRow & {
+  workspace_id: string
+  team_id: string
+}
+
+export type TeamAgentSkillsSettings = {
+  workspaceId: string
+  workspaceSlug: string
+  teamId: string
+  teamKey: string
+  teamName: string
+  canEdit: boolean
+  skills: TeamAgentSkill[]
 }

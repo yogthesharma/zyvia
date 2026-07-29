@@ -4,16 +4,12 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  BellIcon,
   CaretRightIcon,
   CirclesThreePlusIcon,
   CubeIcon,
-  FunnelIcon,
   GearSixIcon,
-  GitBranchIcon,
   LightningIcon,
   PulseIcon,
-  RobotIcon,
   StackIcon,
   TagSimpleIcon,
   TimerIcon,
@@ -133,6 +129,12 @@ export function TeamSettingsHub({
     team.workflowStateCount === 1
       ? "1 status"
       : `${team.workflowStateCount} statuses`
+  const skillLabel =
+    team.agentSkillCount === 0
+      ? "None"
+      : team.agentSkillCount === 1
+        ? "1 skill"
+        : `${team.agentSkillCount} skills`
 
   async function runAction(
     action: () => Promise<{ error?: string; redirectTo?: string }>,
@@ -263,13 +265,13 @@ export function TeamSettingsHub({
                 description="Manage and invite team members"
                 value={memberLabel}
               />
-              <SettingsLinkRow
+              {/* <SettingsLinkRow
                 href={`${base}/slack`}
                 icon={BellIcon}
                 label="Slack notifications"
                 description="Configure notifications for this team"
                 value="Off"
-              />
+              /> */}
             </SettingsSection>
 
             <SettingsSection title="Issues, projects and docs">
@@ -310,13 +312,6 @@ export function TeamSettingsHub({
                 label="Workflows & automations"
                 description="Automations that apply to this team's issues and git workflows"
               />
-              <SettingsLinkRow
-                href={`${base}/triage`}
-                icon={FunnelIcon}
-                label="Triage"
-                description="Streamline requests from the rest of your organization"
-                value={team.triageEnabled ? "On" : "Off"}
-              />
             </SettingsSection>
 
             <SettingsSection title="Cycles">
@@ -331,17 +326,11 @@ export function TeamSettingsHub({
 
             <SettingsSection title="AI & Agents">
               <SettingsLinkRow
-                href={`${base}/agents`}
-                icon={RobotIcon}
-                label="Team agents"
-                description="Add guidance for how agents should operate within this team"
-              />
-              <SettingsLinkRow
                 href={`${base}/agent-skills`}
                 icon={StackIcon}
                 label="Agent skills"
                 description="Agent skills shared with this team"
-                value="None"
+                value={skillLabel}
               />
               <SettingsLinkRow
                 href={`${base}/project-updates`}
@@ -349,14 +338,17 @@ export function TeamSettingsHub({
                 label="Project updates"
                 description="Automatically generate updates using recent activity and defined rules"
               />
+              {/*
               <SettingsLinkRow
                 href={`${base}/thread-summaries`}
                 icon={GitBranchIcon}
                 label="Resolved thread summaries"
                 description="Automatically generate summaries for resolved threads"
               />
+              */}
             </SettingsSection>
 
+            {/*
             <SettingsSection title="Team hierarchy">
               <div className="bg-background/50 px-4 py-3.5">
                 <p className="text-sm leading-snug text-muted-foreground">
@@ -371,6 +363,7 @@ export function TeamSettingsHub({
                 </span>
               </div>
             </SettingsSection>
+            */}
 
             {showDangerZone ? (
               <SettingsSection title="Danger zone">

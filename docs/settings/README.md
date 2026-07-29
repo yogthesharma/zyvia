@@ -14,11 +14,13 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Notifications | Done | Email notification settings |
 | Security & access | Done | Sessions + personal API keys |
 | Connected accounts | UI only | Connect CTA → `toast("Coming soon")` |
-| Agent personalization | Guidance + Skills E2E | MCP omitted for now; see `agent-personalization.md` |
+| Agent personalization | Guidance + Skills E2E | Personal + team skills; MCP omitted — `agent-personalization.md` |
 | SLAs | Settings E2E | Enable, work week, rules; issue evaluation deferred — `slas.md` |
 | Workspace (Administration) | Done E2E | Logo, name, slug (+ former-slug redirects), fiscal year, region, scheduled deletion |
-| Teams / Members / others | Teams list + hub + General + Members E2E | Workspace + team Members shipped; see `members.md`; other per-team subpages mostly stubs |
+| Teams / Members / others | Teams list + hub + General + Members + Agent skills E2E | Workspace + team Members shipped; see `members.md`; other per-team subpages mostly stubs |
 | Documents | Templates E2E | Workspace document templates + icon + rich body; see `documents.md` |
+| Labels | Settings E2E | Issue + project + team labels/groups; apply/merge deferred — `labels.md` |
+| Statuses | Settings E2E | Issue (team) + project (workspace) statuses; fixed categories — `statuses.md` |
 
 ## Product conventions (Linear-like)
 
@@ -41,10 +43,12 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 ## Files in this folder
 
 - [`connected-accounts.md`](./connected-accounts.md) — UI stub pattern
-- [`agent-personalization.md`](./agent-personalization.md) — personal agent guidance + stubs
+- [`agent-personalization.md`](./agent-personalization.md) — personal guidance + personal/team agent skills
 - [`slas.md`](./slas.md) — SLA settings + deferred issue evaluation
 - [`members.md`](./members.md) — workspace + team members
 - [`workspace-settings.md`](./workspace-settings.md) — full E2E settings reference
 - [`patterns.md`](./patterns.md) — checklist for building the next settings page
 - [`documents.md`](./documents.md) — workspace document templates
+- [`labels.md`](./labels.md) — issue/project/team labels settings
+- [`statuses.md`](./statuses.md) — issue + project status workflows
 - [`edge-cases.md`](./edge-cases.md) — bugs we already fixed; don’t regress

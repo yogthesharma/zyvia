@@ -36,6 +36,11 @@
 8. Skill redirects only use validated workspace slugs (no open redirect via `workspaceSlug`).
 9. Skill rows show relative “Updated …” on the right; list ordered by `updated_at` desc.
 10. MCP connectors section is omitted for now.
+11. **Team skills** — any workspace member can view; create/update for team members or workspace owner/admin; locked when workspace deletion is scheduled; deleted teams 404; retired teams remain editable (same as other team settings).
+12. **Team skill scope** — create/update always binds to the team resolved from the URL key (never a client-supplied team id); foreign skill ids for that team → not found.
+13. **Team skill redirects** — validated workspace slug + 2–4 letter team key only.
+14. **Team hub count** — `team_agent_skills(count)` on team detail; empty → “None”.
+15. Duplicate skill names allowed (same as personal skills). Delete UI deferred.
 
 ## SLAs
 
@@ -104,6 +109,38 @@
 7. Redirects only use validated workspace slugs.
 8. Empty body stores `body_doc = null` and `body_text = ''`.
 9. Team templates and the documents product surface are **not** shipped yet (see `documents.md`).
+
+## Labels
+
+1. Members can view; workspace owners/admins manage workspace + project labels; team managers (or workspace admins) manage team labels — locked when workspace deletion is scheduled.
+2. Project labels cannot have `team_id` (DB check + action guard).
+3. Groups cannot nest; parent must be a group in the same workspace/kind/team scope.
+4. Max 250 labels per group (trigger + action).
+5. Sibling names unique (case-insensitive, including archived).
+6. Reserved issue label names blocked on create/rename (not groups).
+7. Archive cascades to children in a group; unarchive blocked for children while parent is archived.
+8. Delete is hard-delete (cascades children + `issue_labels`); confirm dialog required.
+9. Labels are listed by `position` then name; there is **no** drag-and-drop reorder UI (Linear does not support label DnD).
+10. Inline edits race-safe: optimistic patch + rollback on error; ignore `initialSettings` refresh while pending; concurrent blur while pending toasts and restores the field.
+11. Default create names auto-suffix (`New label`, `New label 2`, …) to avoid unique collisions; custom names still error on conflict.
+12. Unarchive group updates the group row first, then children (parent guard rejects active children under archived groups).
+13. Name filter keeps ancestor groups so nested matches stay visible; archived orphans (parent still active) are promoted to roots so they don’t disappear.
+14. Color picker: presets commit immediately; custom HEX/slider debounces (~350ms) and flushes on popover close; emit is deduped against the last confirmed `value` (no stale committed color after a skipped/failed save).
+15. Rested row chrome (description placeholder, `…` menu) only appears on hover / focus / open menu; input fill forced off with `!` against global control tokens.
+16. Apply-to-issue/project, merge, move, bulk select, and `last_applied_at` writers are **not** shipped yet (see `labels.md`).
+
+## Statuses
+
+1. Members can view; workspace owners/admins manage project statuses; team managers (or workspace admins) manage issue statuses — locked when workspace deletion is scheduled.
+2. Categories are fixed; each category always keeps ≥1 status (UI hides Delete; server also rejects).
+3. Default status cannot be deleted until another is set; failed default swap restores the previous default.
+4. Delete with issue usage requires a replacement (issues reassigned first).
+5. Edit no-ops when unchanged after normalize; empty name blocked; descriptions optional.
+6. Color picker: presets immediate; custom HEX/slider debounced (~350ms), flush on close.
+7. Concurrent saves race-safe (request ids); rollback only the failed status; ignore `initialSettings` while pending.
+8. DnD reorder within a category only; stale id sets rejected; unchanged order no-ops.
+9. Add while editing discards the open draft; new names auto-suffix to avoid unique collisions.
+10. Issue/project apply surfaces beyond settings are **not** shipped yet (see `statuses.md`).
 
 ## General
 
