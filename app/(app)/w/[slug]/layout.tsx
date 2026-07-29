@@ -19,7 +19,7 @@ export default async function WorkspaceLayout({
 
   const { data: workspace } = await supabase
     .from("workspaces")
-    .select("id, name, slug, created_by")
+    .select("id, name, slug, logo_url, created_by")
     .eq("slug", slug)
     .maybeSingle()
 
@@ -49,6 +49,7 @@ export default async function WorkspaceLayout({
           id: workspace.id,
           name: workspace.name,
           slug: workspace.slug,
+          logoUrl: workspace.logo_url,
         }}
         teams={teams ?? []}
         user={{ email: user.email, fullName: profile.full_name }}

@@ -103,9 +103,20 @@ export function AppSidebar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton className="min-w-0 flex-1 data-[state=open]:bg-sidebar-accent">
-                <div className="flex size-5 items-center justify-center rounded bg-violet-600 text-[10px] font-semibold text-white">
-                  {workspace.name.slice(0, 1).toUpperCase()}
-                </div>
+                {workspace.logoUrl ? (
+                  <span className="relative flex size-5 shrink-0 overflow-hidden rounded">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={workspace.logoUrl}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  </span>
+                ) : (
+                  <div className="flex size-5 items-center justify-center rounded bg-violet-600 text-[10px] font-semibold text-white">
+                    {workspace.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
                 <span className="truncate font-medium">{workspace.name}</span>
                 <CaretDownIcon className="size-3 opacity-60" />
               </SidebarMenuButton>

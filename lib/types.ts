@@ -23,6 +23,10 @@ export type Workspace = {
   id: string
   name: string
   slug: string
+  logo_url?: string | null
+  fiscal_year_start_month?: number
+  region?: string
+  deletion_scheduled_at?: string | null
   created_by: string | null
 }
 

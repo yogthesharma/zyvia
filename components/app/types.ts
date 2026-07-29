@@ -2,6 +2,7 @@ export type ShellWorkspace = {
   id: string
   name: string
   slug: string
+  logoUrl?: string | null
 }
 
 export type ShellTeam = {

@@ -8,6 +8,7 @@ import { slugify, teamKeyFromName } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
 import type { OnboardingStep } from "@/lib/types"
 import { isValidEmail } from "@/lib/validation"
+import { resolveWorkspaceRegionLabel } from "@/lib/workspace/region"
 
 export type OnboardingState = {
   error?: string
@@ -75,15 +76,19 @@ export async function saveWorkspace(
     redirect("/onboarding/team")
   }
 
+  const region = resolveWorkspaceRegionLabel()
+
   let { error: workspaceError } = await supabase.rpc("create_workspace", {
     p_name: name,
     p_slug: slug,
+    p_region: region,
   })
 
   if (workspaceError?.code === "23505") {
     const retry = await supabase.rpc("create_workspace", {
       p_name: name,
       p_slug: `${slug}-${user.id.slice(0, 4)}`,
+      p_region: region,
     })
     workspaceError = retry.error
   }
