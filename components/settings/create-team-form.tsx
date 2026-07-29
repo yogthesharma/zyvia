@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createTeam } from "@/lib/teams/actions"
+import { DEFAULT_TEAM_ICON } from "@/lib/teams/schema"
 import { teamKeyFromName } from "@/lib/slug"
 import {
   detectDefaultTimezone,
@@ -30,7 +31,7 @@ import {
 import type { TeamSummary } from "@/lib/teams/types"
 
 const TOAST_ID = "create-team"
-const DEFAULT_ICON: IconName = "users"
+const DEFAULT_ICON: IconName = DEFAULT_TEAM_ICON as IconName
 
 export function CreateTeamForm({
   workspaceId,

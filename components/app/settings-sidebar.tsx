@@ -104,6 +104,11 @@ export function SettingsSidebar({
           label: "Connected accounts",
           icon: PlugsIcon,
         },
+        {
+          href: `${base}/agent-personalization`,
+          label: "Agent personalization",
+          icon: RobotIcon,
+        },
       ],
     },
     {
@@ -205,7 +210,9 @@ export function SettingsSidebar({
                       (item.href.endsWith("/preferences") &&
                         pathname === `/w/${workspace.slug}/settings`) ||
                       (item.href.endsWith("/teams") &&
-                        pathname.startsWith(`${item.href}/`))
+                        pathname.startsWith(`${item.href}/`)) ||
+                      (item.href.endsWith("/agent-personalization") &&
+                        pathname.startsWith(`${base}/skill`))
                     }
                   />
                 ))}
@@ -234,11 +241,7 @@ export function SettingsSidebar({
                         : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                     )}
                   >
-                    <TeamIcon
-                      icon={team.icon}
-                      fallback={team.key}
-                      className="size-4"
-                    />
+                    <TeamIcon icon={team.icon} className="size-4" />
                     <span className="truncate">{team.name}</span>
                   </Link>
                 ))

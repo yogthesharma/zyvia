@@ -176,7 +176,9 @@ export async function createTeam(input: {
     }
 
     const iconParsed = parseTeamIcon(input.icon)
-    if (iconParsed.error) return { error: iconParsed.error }
+    if (iconParsed.error || !iconParsed.icon) {
+      return { error: iconParsed.error ?? "Invalid icon." }
+    }
 
     const tzParsed = parseTeamTimezone(input.timezone)
     if (tzParsed.error || !tzParsed.timezone) {
@@ -188,7 +190,7 @@ export async function createTeam(input: {
       input.workspaceSlug
     )
     if (isAuthError(auth)) return { error: auth.error }
-    const { supabase } = auth
+    const { supabase, userId } = auth
 
     const copyFromId =
       typeof input.copyFromTeamId === "string" && input.copyFromTeamId
@@ -215,7 +217,7 @@ export async function createTeam(input: {
         workspace_id: input.workspaceId,
         name: nameParsed.name,
         key: keyParsed.key,
-        icon: iconParsed.icon ?? null,
+        icon: iconParsed.icon,
         timezone: tzParsed.timezone,
       })
       .select("id, name, key, icon, timezone, created_at")
@@ -228,6 +230,25 @@ export async function createTeam(input: {
       return { error: insertError.message }
     }
     if (!created) return { error: "Could not create team." }
+
+    const { error: memberError } = await supabase.from("team_members").insert({
+      team_id: created.id,
+      user_id: userId,
+      role: "owner",
+    })
+    if (memberError) {
+      const { error: rollbackError } = await supabase
+        .from("teams")
+        .delete()
+        .eq("id", created.id)
+      if (rollbackError) {
+        return {
+          error:
+            "Could not finish creating the team. Refresh and try again, or delete the incomplete team.",
+        }
+      }
+      return { error: "Could not add you as a team member." }
+    }
 
     let warning: string | undefined
 
@@ -290,6 +311,10 @@ export async function createTeam(input: {
       icon: created.icon,
       timezone: created.timezone,
       createdAt: created.created_at,
+      visibility: "workspace",
+      status: "active",
+      memberCount: 1,
+      issueCount: 0,
     }
 
     revalidatePath(`/w/${input.workspaceSlug}`)

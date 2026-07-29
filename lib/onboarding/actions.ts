@@ -6,6 +6,7 @@ import { getPrimaryWorkspace, requireProfile } from "@/lib/auth/session"
 import { workspaceHomePath } from "@/lib/preferences/queries"
 import { slugify, teamKeyFromName } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
+import { DEFAULT_TEAM_ICON } from "@/lib/teams/schema"
 import type { OnboardingStep } from "@/lib/types"
 import { isValidEmail } from "@/lib/validation"
 import { resolveWorkspaceRegionLabel } from "@/lib/workspace/region"
@@ -141,17 +142,42 @@ export async function saveTeam(
     redirect("/onboarding/theme")
   }
 
-  const { error } = await supabase.from("teams").insert({
-    workspace_id: workspace.id,
-    name,
-    key,
-  })
+  const { data: created, error } = await supabase
+    .from("teams")
+    .insert({
+      workspace_id: workspace.id,
+      name,
+      key,
+      icon: DEFAULT_TEAM_ICON,
+    })
+    .select("id")
+    .maybeSingle()
 
   if (error) {
     if (error.code === "23505") {
       return { error: "That team key is already taken in this workspace." }
     }
     return { error: error.message }
+  }
+  if (!created) return { error: "Could not create team." }
+
+  const { error: memberError } = await supabase.from("team_members").insert({
+    team_id: created.id,
+    user_id: user.id,
+    role: "owner",
+  })
+  if (memberError) {
+    const { error: rollbackError } = await supabase
+      .from("teams")
+      .delete()
+      .eq("id", created.id)
+    if (rollbackError) {
+      return {
+        error:
+          "Could not finish creating the team. Refresh and try again, or delete the incomplete team.",
+      }
+    }
+    return { error: "Could not add you as a team member." }
   }
 
   try {

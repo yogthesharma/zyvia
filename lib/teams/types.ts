@@ -5,6 +5,12 @@ export type TeamSummary = {
   icon: string | null
   timezone: string
   createdAt: string
+  /** Workspace-visible until private teams ship. */
+  visibility: "workspace"
+  /** Active until retire/delete flows ship. */
+  status: "active"
+  memberCount: number
+  issueCount: number
 }
 
 export type CreateTeamInput = {

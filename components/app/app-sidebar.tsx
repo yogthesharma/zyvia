@@ -254,7 +254,7 @@ export function AppSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton className="[&>svg:last-child]:ml-auto">
-                            <TeamIcon icon={team.icon} fallback={team.key} />
+                            <TeamIcon icon={team.icon} />
                             <span className="truncate">{team.name}</span>
                             <CaretDownIcon className="size-3 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                           </SidebarMenuButton>

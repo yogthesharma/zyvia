@@ -24,6 +24,15 @@
 1. Connect always toasts “Coming soon” (no half-wired OAuth).
 2. Don’t show a fake Connected GitHub state without a real account link.
 
+## Teams
+
+1. **Creator membership** — creating a team always inserts the creator as team `owner`; onboarding does the same.
+2. **Membership insert failure** — roll back by deleting the team; DELETE RLS must allow workspace members (see hardening migration). If rollback fails, return a clear incomplete-team error.
+3. **Default icon** — empty/null icon becomes `users`; column is NOT NULL with default.
+4. **No fake icon color** — team icons use muted foreground until a color picker ships.
+5. **List query failure** — teams settings page soft-fails to `notFound()` instead of 500ing the shell.
+6. **Retired / deleted filters** — UI only; empty until those flows exist.
+
 ## General
 
 1. Prefer soft failures + toasts over uncaught client exceptions.

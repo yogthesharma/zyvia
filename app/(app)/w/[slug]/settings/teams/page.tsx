@@ -5,7 +5,7 @@ import { TeamsSettingsList } from "@/components/settings/teams-settings-list"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import {
   getWorkspaceBySlug,
-  listWorkspaceTeams,
+  listWorkspaceTeamsOrNull,
 } from "@/lib/teams/queries"
 import { createClient } from "@/lib/supabase/server"
 
@@ -30,7 +30,8 @@ export default async function TeamsSettingsPage({
     .maybeSingle()
   if (!membership) notFound()
 
-  const teams = await listWorkspaceTeams(workspace.id)
+  const teams = await listWorkspaceTeamsOrNull(workspace.id)
+  if (!teams) notFound()
 
   return <TeamsSettingsList workspaceSlug={slug} teams={teams} />
 }

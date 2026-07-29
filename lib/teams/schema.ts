@@ -2,6 +2,9 @@ import { teamKeyFromName } from "@/lib/slug"
 
 const ICON_NAME_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
+/** Default Lucide icon name when a team has no custom icon. */
+export const DEFAULT_TEAM_ICON = "users"
+
 export function parseTeamName(name: unknown): { name?: string; error?: string } {
   if (typeof name !== "string") return { error: "Enter a team name." }
   const trimmed = name.trim().replace(/\s+/g, " ")
@@ -27,11 +30,11 @@ export function parseTeamKey(
   return { key }
 }
 
-export function parseTeamIcon(icon: unknown): { icon?: string | null; error?: string } {
-  if (icon == null || icon === "") return { icon: null }
+export function parseTeamIcon(icon: unknown): { icon?: string; error?: string } {
+  if (icon == null || icon === "") return { icon: DEFAULT_TEAM_ICON }
   if (typeof icon !== "string") return { error: "Invalid icon." }
   const trimmed = icon.trim()
-  if (!trimmed) return { icon: null }
+  if (!trimmed) return { icon: DEFAULT_TEAM_ICON }
   if (trimmed.length > 64 || !ICON_NAME_RE.test(trimmed)) {
     return { error: "Invalid icon." }
   }
