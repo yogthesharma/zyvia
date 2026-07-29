@@ -79,7 +79,7 @@ export function ConnectedAccounts() {
         {ACCOUNTS.map((account) => (
           <div
             key={account.id}
-            className="flex items-start gap-3 rounded-lg bg-muted/20 px-4 py-4 transition-colors hover:bg-muted/35 sm:items-center"
+            className="flex items-start gap-3 rounded-lg bg-surface px-4 py-4 transition-colors hover:bg-accent/70 sm:items-center"
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted/50 text-foreground">
               {account.icon}

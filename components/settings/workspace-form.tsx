@@ -463,8 +463,9 @@ export function WorkspaceForm({
             label="URL"
             control={
               <div
+                data-slot="control"
                 className={cn(
-                  "flex w-72 items-center overflow-hidden rounded-lg border border-transparent bg-muted/50 dark:bg-input/40",
+                  "flex w-72 items-center overflow-hidden rounded-lg border",
                   (readOnly || isPending("slug")) && "opacity-50"
                 )}
               >

@@ -61,9 +61,7 @@ export function parseTeamKey(
   nameForFallback?: string
 ): { key?: string; error?: string } {
   let key =
-    typeof keyInput === "string"
-      ? keyInput.trim().toUpperCase().replace(/[^A-Z]/g, "")
-      : ""
+    typeof keyInput === "string" ? sanitizeTeamKeyInput(keyInput) : ""
 
   if (!key && nameForFallback) key = teamKeyFromName(nameForFallback)
 
@@ -74,6 +72,14 @@ export function parseTeamKey(
     return { error: "That identifier is reserved." }
   }
   return { key }
+}
+
+/** Sanitize identifier while typing (letters only, uppercase, max 4). */
+export function sanitizeTeamKeyInput(value: string) {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "")
+    .slice(0, 4)
 }
 
 export function parseTeamIcon(icon: unknown): { icon?: string; error?: string } {
@@ -144,7 +150,7 @@ export function estimationScaleLabel(scale: TeamEstimationScale) {
     case "linear":
       return "Linear"
     case "tshirt":
-      return "T-shirt"
+      return "T-Shirt (XS, S, M, L, XL)"
     default:
       return scale
   }

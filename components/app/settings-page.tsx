@@ -91,10 +91,13 @@ export function SettingsSection({
   title,
   description,
   children,
+  framed = true,
 }: {
   title?: string
   description?: ReactNode
   children: ReactNode
+  /** When false, children render without the muted surface card. */
+  framed?: boolean
 }) {
   return (
     <section className="space-y-3">
@@ -106,9 +109,13 @@ export function SettingsSection({
           ) : null}
         </div>
       ) : null}
-      <div className="overflow-hidden rounded-lg bg-muted/20">
-        {children}
-      </div>
+      {framed ? (
+        <div data-slot="surface" className="overflow-hidden rounded-lg">
+          {children}
+        </div>
+      ) : (
+        children
+      )}
     </section>
   )
 }
@@ -129,7 +136,7 @@ export function SettingsRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
+        "flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
         className
       )}
     >

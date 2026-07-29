@@ -11,6 +11,7 @@ export function createBuilder() {
     Context: GraphQLContext
     Scalars: {
       DateTime: { Input: Date | string; Output: Date | string }
+      JSON: { Input: unknown; Output: unknown }
     }
   }>({})
 
@@ -24,6 +25,11 @@ export function createBuilder() {
       if (typeof value === "string" || value instanceof Date) return value
       throw new Error("Invalid DateTime")
     },
+  })
+
+  builder.scalarType("JSON", {
+    serialize: (value) => value,
+    parseValue: (value) => value,
   })
 
   return builder

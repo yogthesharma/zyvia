@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -8,7 +9,6 @@ import { TeamIcon } from "@/components/app/team-icon"
 import {
   SettingsRow,
   SettingsSection,
-  SettingsSubpage,
 } from "@/components/app/settings-page"
 import { Button } from "@/components/ui/button"
 import { Icon, IconPicker, type IconName } from "@/components/ui/icon-picker"
@@ -30,6 +30,7 @@ import {
   parseTeamDescription,
   parseTeamKey,
   parseTeamName,
+  sanitizeTeamKeyInput,
 } from "@/lib/teams/schema"
 import {
   formatTimezoneLabel,
@@ -40,6 +41,7 @@ import type {
   TeamGeneralSettingsUpdate,
   TeamSettings,
 } from "@/lib/teams/types"
+import { cn } from "@/lib/utils"
 
 const TOAST_ID = "team-general-settings"
 
@@ -80,6 +82,7 @@ export function TeamGeneralForm({
   )
   const readOnly = !team.canManage
   const iconValue = (team.icon || DEFAULT_TEAM_ICON) as IconName
+  const estimationEnabled = team.estimationScale !== "none"
 
   React.useEffect(() => {
     if (pendingKeysRef.current.size > 0) return
@@ -123,6 +126,15 @@ export function TeamGeneralForm({
     if (pending.has("estimationScale")) {
       merged.estimationScale = teamRef.current.estimationScale
     }
+    if (pending.has("allowZeroEstimates")) {
+      merged.allowZeroEstimates = teamRef.current.allowZeroEstimates
+    }
+    if (pending.has("extendedEstimateScale")) {
+      merged.extendedEstimateScale = teamRef.current.extendedEstimateScale
+    }
+    if (pending.has("countUnestimatedIssues")) {
+      merged.countUnestimatedIssues = teamRef.current.countUnestimatedIssues
+    }
     if (pending.has("emailIntakeEnabled")) {
       merged.emailIntakeEnabled = teamRef.current.emailIntakeEnabled
     }
@@ -154,6 +166,12 @@ export function TeamGeneralForm({
       next.timezone = previous.timezone
     } else if (field === "estimationScale") {
       next.estimationScale = previous.estimationScale
+    } else if (field === "allowZeroEstimates") {
+      next.allowZeroEstimates = previous.allowZeroEstimates
+    } else if (field === "extendedEstimateScale") {
+      next.extendedEstimateScale = previous.extendedEstimateScale
+    } else if (field === "countUnestimatedIssues") {
+      next.countUnestimatedIssues = previous.countUnestimatedIssues
     } else if (field === "emailIntakeEnabled") {
       next.emailIntakeEnabled = previous.emailIntakeEnabled
     } else if (field === "detailedIssueHistory") {
@@ -227,6 +245,27 @@ export function TeamGeneralForm({
     } else if (field === "estimationScale") {
       if (typeof raw !== "string" || raw === previous.estimationScale) return
       patch.estimationScale = raw as TeamEstimationScale
+    } else if (field === "allowZeroEstimates") {
+      if (typeof raw !== "boolean" || raw === previous.allowZeroEstimates) {
+        return
+      }
+      patch.allowZeroEstimates = raw
+    } else if (field === "extendedEstimateScale") {
+      if (
+        typeof raw !== "boolean" ||
+        raw === previous.extendedEstimateScale
+      ) {
+        return
+      }
+      patch.extendedEstimateScale = raw
+    } else if (field === "countUnestimatedIssues") {
+      if (
+        typeof raw !== "boolean" ||
+        raw === previous.countUnestimatedIssues
+      ) {
+        return
+      }
+      patch.countUnestimatedIssues = raw
     } else if (field === "emailIntakeEnabled") {
       if (typeof raw !== "boolean" || raw === previous.emailIntakeEnabled) {
         return
@@ -277,7 +316,8 @@ export function TeamGeneralForm({
       toast.success("Saved", { id: TOAST_ID })
 
       if (result.redirectTo) {
-        router.replace(result.redirectTo)
+        // Hard navigate like workspace slug renames — avoid racing refresh on the old key URL.
+        window.location.assign(result.redirectTo)
         return
       }
       router.refresh()
@@ -296,14 +336,20 @@ export function TeamGeneralForm({
   }
 
   return (
-    <SettingsSubpage backHref={hubHref} backLabel="Back">
+    <div className="relative min-h-full">
+      <div className="pointer-events-none sticky top-0 z-20 h-0">
+        <Link
+          href={hubHref}
+          className="pointer-events-auto absolute top-4 left-4 inline-flex max-w-[min(18rem,calc(100%-2rem))] items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <TeamIcon icon={team.icon} className="size-4 shrink-0" />
+          <span className="truncate">{team.name}</span>
+        </Link>
+      </div>
+
       <div className="mx-auto w-full max-w-3xl px-8 pt-12 pb-8">
-        <header className="mb-8 flex items-center gap-2.5">
-          <TeamIcon icon={team.icon} className="size-5" />
-          <div className="min-w-0">
-            <p className="truncate text-sm text-muted-foreground">{team.name}</p>
-            <h1 className="text-xl font-semibold tracking-tight">General</h1>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-xl font-semibold tracking-tight">General</h1>
         </header>
 
         <div className="space-y-10">
@@ -358,27 +404,36 @@ export function TeamGeneralForm({
             <SettingsRow
               label="Identifier"
               control={
-                <Input
-                  value={key}
-                  maxLength={4}
-                  disabled={readOnly || isPending("key")}
-                  className="h-8 w-28 uppercase"
-                  aria-label="Team identifier"
-                  onChange={(event) =>
-                    setKey(
-                      event.target.value
-                        .toUpperCase()
-                        .replace(/[^A-Z]/g, "")
-                        .slice(0, 4)
-                    )
-                  }
-                  onBlur={() => void commitField("key", key)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.currentTarget.blur()
+                <div
+                  data-slot="control"
+                  className={cn(
+                    "flex w-40 items-center overflow-hidden rounded-lg border",
+                    (readOnly || isPending("key")) && "opacity-50"
+                  )}
+                >
+                  <Input
+                    value={key}
+                    maxLength={4}
+                    disabled={readOnly || isPending("key")}
+                    className="h-8 border-0 bg-transparent uppercase shadow-none focus-visible:ring-0 dark:bg-transparent"
+                    aria-label="Team identifier"
+                    spellCheck={false}
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    onChange={(event) =>
+                      setKey(sanitizeTeamKeyInput(event.target.value))
                     }
-                  }}
-                />
+                    onBlur={() => void commitField("key", key)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.currentTarget.blur()
+                      }
+                    }}
+                  />
+                  <span className="shrink-0 pr-2.5 text-sm text-muted-foreground">
+                    -123
+                  </span>
+                </div>
               }
             />
           </SettingsSection>
@@ -386,19 +441,18 @@ export function TeamGeneralForm({
           <SettingsSection
             title="Description"
             description="A short summary shown on the team page"
+            framed={false}
           >
-            <div className="px-4 py-3.5">
-              <Textarea
-                value={description}
-                maxLength={MAX_TEAM_DESCRIPTION_LENGTH}
-                disabled={readOnly || isPending("description")}
-                placeholder="e.g. Builds and maintains core platform infrastructure"
-                className="min-h-24 resize-y"
-                aria-label="Team description"
-                onChange={(event) => setDescription(event.target.value)}
-                onBlur={() => void commitField("description", description)}
-              />
-            </div>
+            <Textarea
+              value={description}
+              maxLength={MAX_TEAM_DESCRIPTION_LENGTH}
+              disabled={readOnly || isPending("description")}
+              placeholder="e.g. Builds and maintains core platform infrastructure"
+              className="min-h-28 w-full resize-y"
+              aria-label="Team description"
+              onChange={(event) => setDescription(event.target.value)}
+              onBlur={() => void commitField("description", description)}
+            />
           </SettingsSection>
 
           <SettingsSection
@@ -457,6 +511,56 @@ export function TeamGeneralForm({
                 </Select>
               }
             />
+            {estimationEnabled ? (
+              <>
+                <SettingsRow
+                  label="Allow zero estimates"
+                  description="Allow issues to be estimated as zero."
+                  control={
+                    <Switch
+                      checked={team.allowZeroEstimates}
+                      disabled={readOnly || isPending("allowZeroEstimates")}
+                      onCheckedChange={(checked) =>
+                        void commitField("allowZeroEstimates", checked)
+                      }
+                      aria-label="Allow zero estimates"
+                    />
+                  }
+                />
+                <SettingsRow
+                  label="Extended estimate scale"
+                  description="Include additional estimate values beyond the default scale."
+                  control={
+                    <Switch
+                      checked={team.extendedEstimateScale}
+                      disabled={
+                        readOnly || isPending("extendedEstimateScale")
+                      }
+                      onCheckedChange={(checked) =>
+                        void commitField("extendedEstimateScale", checked)
+                      }
+                      aria-label="Extended estimate scale"
+                    />
+                  }
+                />
+                <SettingsRow
+                  label="Count unestimated issues"
+                  description="Include unestimated issues when planning cycle capacity."
+                  control={
+                    <Switch
+                      checked={team.countUnestimatedIssues}
+                      disabled={
+                        readOnly || isPending("countUnestimatedIssues")
+                      }
+                      onCheckedChange={(checked) =>
+                        void commitField("countUnestimatedIssues", checked)
+                      }
+                      aria-label="Count unestimated issues"
+                    />
+                  }
+                />
+              </>
+            ) : null}
           </SettingsSection>
 
           <SettingsSection
@@ -496,6 +600,6 @@ export function TeamGeneralForm({
           </SettingsSection>
         </div>
       </div>
-    </SettingsSubpage>
+    </div>
   )
 }

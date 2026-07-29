@@ -55,6 +55,8 @@ export type Issue = {
   number: number
   title: string
   description: string | null
+  /** Plate rich document JSON */
+  description_doc?: unknown | null
   status_id: string
   priority: number
   assignee_id: string | null

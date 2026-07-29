@@ -358,6 +358,9 @@ async function loadManagedTeam(input: {
         timezone: string
         description: string
         estimation_scale: string
+        allow_zero_estimates: boolean
+        extended_estimate_scale: boolean
+        count_unestimated_issues: boolean
         email_intake_enabled: boolean
         detailed_issue_history: boolean
         workspace_id: string
@@ -381,7 +384,7 @@ async function loadManagedTeam(input: {
   const { data: team, error } = await supabase
     .from("teams")
     .select(
-      "id, key, name, icon, timezone, description, estimation_scale, email_intake_enabled, detailed_issue_history, workspace_id, retired_at, deleted_at"
+      "id, key, name, icon, timezone, description, estimation_scale, allow_zero_estimates, extended_estimate_scale, count_unestimated_issues, email_intake_enabled, detailed_issue_history, workspace_id, retired_at, deleted_at"
     )
     .eq("id", input.teamId)
     .eq("workspace_id", input.workspaceId)
@@ -422,6 +425,9 @@ async function loadManagedTeam(input: {
       ...team,
       description: team.description ?? "",
       estimation_scale: team.estimation_scale ?? "none",
+      allow_zero_estimates: Boolean(team.allow_zero_estimates),
+      extended_estimate_scale: Boolean(team.extended_estimate_scale),
+      count_unestimated_issues: team.count_unestimated_issues !== false,
       email_intake_enabled: Boolean(team.email_intake_enabled),
       detailed_issue_history: Boolean(team.detailed_issue_history),
     },
@@ -702,6 +708,49 @@ export async function updateTeamGeneralSettings(input: {
       }
       if (parsed.estimationScale !== team.estimation_scale) {
         patch.estimation_scale = parsed.estimationScale
+      }
+    }
+
+    if (input.patch.allowZeroEstimates !== undefined) {
+      const parsed = parseTeamBoolean(
+        input.patch.allowZeroEstimates,
+        "zero estimates"
+      )
+      if (parsed.error || parsed.value === undefined) {
+        return { error: parsed.error ?? "Pick a valid zero estimates setting." }
+      }
+      if (parsed.value !== team.allow_zero_estimates) {
+        patch.allow_zero_estimates = parsed.value
+      }
+    }
+
+    if (input.patch.extendedEstimateScale !== undefined) {
+      const parsed = parseTeamBoolean(
+        input.patch.extendedEstimateScale,
+        "extended estimate scale"
+      )
+      if (parsed.error || parsed.value === undefined) {
+        return {
+          error: parsed.error ?? "Pick a valid extended estimate setting.",
+        }
+      }
+      if (parsed.value !== team.extended_estimate_scale) {
+        patch.extended_estimate_scale = parsed.value
+      }
+    }
+
+    if (input.patch.countUnestimatedIssues !== undefined) {
+      const parsed = parseTeamBoolean(
+        input.patch.countUnestimatedIssues,
+        "unestimated issues"
+      )
+      if (parsed.error || parsed.value === undefined) {
+        return {
+          error: parsed.error ?? "Pick a valid unestimated issues setting.",
+        }
+      }
+      if (parsed.value !== team.count_unestimated_issues) {
+        patch.count_unestimated_issues = parsed.value
       }
     }
 

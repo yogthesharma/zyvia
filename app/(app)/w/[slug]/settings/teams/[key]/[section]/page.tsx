@@ -10,10 +10,6 @@ import {
 import { createClient } from "@/lib/supabase/server"
 
 const SECTIONS: Record<string, { title: string; description: string }> = {
-  members: {
-    title: "Members",
-    description: "Manage and invite team members.",
-  },
   slack: {
     title: "Slack notifications",
     description: "Configure notifications for this team.",

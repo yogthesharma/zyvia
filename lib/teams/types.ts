@@ -29,6 +29,9 @@ export type TeamSettings = TeamSummary & {
   workspaceId: string
   description: string
   estimationScale: TeamEstimationScale
+  allowZeroEstimates: boolean
+  extendedEstimateScale: boolean
+  countUnestimatedIssues: boolean
   parentTeamId: string | null
   triageEnabled: boolean
   emailIntakeEnabled: boolean
@@ -48,6 +51,9 @@ export type TeamGeneralSettingsUpdate = {
   description?: string
   timezone?: string
   estimationScale?: TeamEstimationScale
+  allowZeroEstimates?: boolean
+  extendedEstimateScale?: boolean
+  countUnestimatedIssues?: boolean
   emailIntakeEnabled?: boolean
   detailedIssueHistory?: boolean
 }

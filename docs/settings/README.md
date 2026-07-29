@@ -17,7 +17,8 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Agent personalization | Guidance + Skills E2E | MCP omitted for now; see `agent-personalization.md` |
 | SLAs | Settings E2E | Enable, work week, rules; issue evaluation deferred — `slas.md` |
 | Workspace (Administration) | Done E2E | Logo, name, slug (+ former-slug redirects), fiscal year, region, scheduled deletion |
-| Teams / Members / others | Teams list + hub + General E2E | Other per-team subpages mostly stubs; see edge-cases |
+| Teams / Members / others | Teams list + hub + General + Members E2E | Workspace + team Members shipped; see `members.md`; other per-team subpages mostly stubs |
+| Documents | Templates E2E | Workspace document templates + icon + rich body; see `documents.md` |
 
 ## Product conventions (Linear-like)
 
@@ -42,6 +43,8 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 - [`connected-accounts.md`](./connected-accounts.md) — UI stub pattern
 - [`agent-personalization.md`](./agent-personalization.md) — personal agent guidance + stubs
 - [`slas.md`](./slas.md) — SLA settings + deferred issue evaluation
+- [`members.md`](./members.md) — workspace + team members
 - [`workspace-settings.md`](./workspace-settings.md) — full E2E settings reference
 - [`patterns.md`](./patterns.md) — checklist for building the next settings page
+- [`documents.md`](./documents.md) — workspace document templates
 - [`edge-cases.md`](./edge-cases.md) — bugs we already fixed; don’t regress

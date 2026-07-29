@@ -1,29 +1,34 @@
-# Rich editor playground (removable)
+# Rich editor
 
-Temporary Plate + shadcn experiment. Nothing here is wired into product flows.
+## Product path (keep)
 
-## Try it
+- `components/rich-editor/rich-text-editor.tsx` — editable Plate wrapper
+- `components/rich-editor/rich-text-viewer.tsx` — static read-only renderer
+- `components/rich-editor/index.tsx` — lazy export for code-splitting
+- `components/rich-editor/editor-context.tsx` — mentionables + workspace upload context
+- `lib/rich-editor/*` — types, schema, plain-text, upload action
+- `lib/workspace/mentionables.ts`
+- `lib/issues/actions.ts` — create/update via GraphQL
+- Issue UI: `app/(app)/w/[slug]/issues/**`, `components/issues/*`
 
-Open `/rich-editor`.
+First product surface: **issue description** (`issues.description_doc` jsonb + plain `description`).
 
-## Remove later
+Product overview + **out-of-scope / deferred** items: [docs/rich-editor/README.md](../../docs/rich-editor/README.md).
 
-1. Delete folders/files:
-   - `app/rich-editor/`
-   - `components/rich-editor/`
-   - `components/editor/` (includes `media-upload-dialog.tsx`)
-   - Plate-added UI under `components/ui/` (see list below)
-   - `hooks/use-upload-file.ts`, `hooks/use-mounted.ts` (if unused elsewhere)
-   - `lib/uploadthing.ts`, `lib/suggestion.ts`
+## Playground (dev only)
 
-2. Revert `components.json` `@plate` registry entry if unused.
+`/rich-editor` is gated with `notFound()` in production.
 
-3. Revert Plate CSS vars in `app/globals.css` (`--brand`, `--highlight`, `--color-brand`, `--color-highlight`) if unused.
+- `app/rich-editor/`
+- `components/rich-editor/playground.tsx`
+- `components/rich-editor/demo-value.ts`
 
-4. Remove Plate-related deps from `package.json` (anything `@platejs/*`, `platejs`, `@uploadthing/*`, `uploadthing`, `@ariakit/react`, `@udecode/cn`, `react-player`, `react-lite-youtube-embed`, `react-tweet`, `use-file-picker`, `tailwind-scrollbar-hide`, and lodash if only used by Plate).
+## Optional full removal of Plate
 
-### Likely Plate UI files under `components/ui/`
+If abandoning rich text entirely:
 
-`editor.tsx`, `editor-static.tsx`, `fixed-toolbar.tsx`, `toolbar.tsx`, `mark-toolbar-button.tsx`, `*-node.tsx` / `*-node-static.tsx` for blockquote/heading/paragraph/hr/code/kbd/highlight/mention/table/media/list, `media-*`, `table-*`, `list-toolbar-button.tsx`, `indent-toolbar-button.tsx`, `font-color-toolbar-button.tsx`, `inline-combobox.tsx`, `caption.tsx`, `resize-handle.tsx`, `block-selection.tsx`, `block-list.tsx`, `block-list-static.tsx`, `alert-dialog.tsx`, `checkbox.tsx` (only if unused elsewhere).
-
-Keep any of those that other product code starts depending on.
+1. Delete product + playground folders above, plus `components/editor/` and Plate UI under `components/ui/`.
+2. Revert `components.json` `@plate` registry entry.
+3. Revert Plate CSS vars in `app/globals.css`.
+4. Remove Plate-related deps from `package.json`.
+5. Drop `issues.description_doc` and `editor-media` bucket via a new migration.

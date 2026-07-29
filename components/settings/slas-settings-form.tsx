@@ -238,7 +238,10 @@ export function SlasSettingsForm({
       width="narrow"
     >
       {!settings.enabled ? (
-        <div className="flex flex-col gap-3 rounded-lg bg-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div
+          data-slot="surface"
+          className="flex flex-col gap-3 rounded-lg px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+        >
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium">SLAs</p>
             <p className="text-sm text-muted-foreground">
@@ -287,7 +290,7 @@ export function SlasSettingsForm({
               </Button>
             ) : null}
           </div>
-          <div className="overflow-hidden rounded-lg bg-muted/20">
+          <div data-slot="surface" className="overflow-hidden rounded-lg">
             <SettingsRow
               label="Business days"
               description="Days counted for business-day SLA durations."
@@ -339,7 +342,7 @@ export function SlasSettingsForm({
           </Button>
         </div>
 
-        <div className="overflow-hidden rounded-lg bg-muted/20">
+        <div data-slot="surface" className="overflow-hidden rounded-lg">
           {!settings.enabled ? (
             <p className="px-4 py-3.5 text-sm text-muted-foreground">
               Enable SLAs to manage automation rules.
@@ -428,10 +431,8 @@ export function SlasSettingsForm({
                       min={1}
                       max={365}
                       value={draft.customAmount ?? 1}
-                      className={cn(
-                        "h-8 w-20 rounded-lg border border-transparent bg-muted/50 px-2.5 text-sm outline-none",
-                        "focus-visible:border-ring focus-visible:bg-background focus-visible:ring-3 focus-visible:ring-ring/50"
-                      )}
+                      data-slot="input"
+                      className="h-8 w-20 rounded-lg border px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,

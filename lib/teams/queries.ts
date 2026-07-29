@@ -19,6 +19,9 @@ type TeamRow = {
   created_at: string
   visibility: TeamVisibility
   estimation_scale: TeamEstimationScale
+  allow_zero_estimates: boolean
+  extended_estimate_scale: boolean
+  count_unestimated_issues: boolean
   parent_team_id: string | null
   triage_enabled: boolean
   email_intake_enabled: boolean
@@ -31,7 +34,7 @@ type TeamRow = {
 }
 
 const TEAM_LIST_SELECT =
-  "id, workspace_id, name, key, icon, timezone, description, created_at, visibility, estimation_scale, parent_team_id, triage_enabled, email_intake_enabled, detailed_issue_history, retired_at, deleted_at, issues(count), team_members(count)"
+  "id, workspace_id, name, key, icon, timezone, description, created_at, visibility, estimation_scale, allow_zero_estimates, extended_estimate_scale, count_unestimated_issues, parent_team_id, triage_enabled, email_intake_enabled, detailed_issue_history, retired_at, deleted_at, issues(count), team_members(count)"
 
 const TEAM_DETAIL_SELECT = `${TEAM_LIST_SELECT}, workflow_states(count)`
 
@@ -74,6 +77,9 @@ function mapSettings(
     workspaceId: row.workspace_id,
     description: row.description ?? "",
     estimationScale: row.estimation_scale ?? "none",
+    allowZeroEstimates: Boolean(row.allow_zero_estimates),
+    extendedEstimateScale: Boolean(row.extended_estimate_scale),
+    countUnestimatedIssues: row.count_unestimated_issues !== false,
     parentTeamId: row.parent_team_id,
     triageEnabled: Boolean(row.triage_enabled),
     emailIntakeEnabled: Boolean(row.email_intake_enabled),

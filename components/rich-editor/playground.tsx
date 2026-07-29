@@ -4,6 +4,7 @@ import * as React from "react"
 import type { Value } from "platejs"
 
 import { RichTextEditor } from "@/components/rich-editor/rich-text-editor"
+import { RICH_EDITOR_DEMO_VALUE } from "@/components/rich-editor/demo-value"
 import { Button } from "@/components/ui/button"
 
 const STORAGE_KEY = "zyvia-rich-editor-playground-v2"
@@ -52,6 +53,8 @@ export function RichEditorPlayground() {
 
       <RichTextEditor
         storageKey={STORAGE_KEY}
+        value={RICH_EDITOR_DEMO_VALUE}
+        variant="playground"
         onChange={setValue}
       />
 

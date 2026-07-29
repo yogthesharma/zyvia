@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useMounted } from '@/hooks/use-mounted';
 import { inlineSuggestionVariants } from '@/lib/suggestion';
+import { useMentionables } from '@/components/rich-editor/editor-context';
 
 import {
   InlineCombobox,
@@ -83,6 +84,7 @@ export function MentionInputElement(
 ) {
   const { editor, element } = props;
   const [search, setSearch] = React.useState('');
+  const mentionables = useMentionables();
 
   return (
     <PlateElement {...props} as="span">
@@ -101,17 +103,19 @@ export function MentionInputElement(
           <InlineComboboxEmpty>No results</InlineComboboxEmpty>
 
           <InlineComboboxGroup>
-            {MENTIONABLES.filter((item) =>
-              item.text.toLowerCase().includes(search.toLowerCase())
-            ).map((item) => (
-              <InlineComboboxItem
-                key={item.key}
-                value={item.text}
-                onClick={() => onSelectItem(editor, item, search)}
-              >
-                {item.text}
-              </InlineComboboxItem>
-            ))}
+            {mentionables
+              .filter((item) =>
+                item.text.toLowerCase().includes(search.toLowerCase())
+              )
+              .map((item) => (
+                <InlineComboboxItem
+                  key={item.key}
+                  value={item.text}
+                  onClick={() => onSelectItem(editor, item, search)}
+                >
+                  {item.text}
+                </InlineComboboxItem>
+              ))}
           </InlineComboboxGroup>
         </InlineComboboxContent>
       </InlineCombobox>
@@ -120,15 +124,3 @@ export function MentionInputElement(
     </PlateElement>
   );
 }
-
-/** Demo mentionables for the /rich-editor playground only. */
-const MENTIONABLES = [
-  { key: '0', text: 'Ada Lovelace' },
-  { key: '1', text: 'Alan Turing' },
-  { key: '2', text: 'Grace Hopper' },
-  { key: '3', text: 'Engineering' },
-  { key: '4', text: 'Design' },
-  { key: '5', text: 'Product' },
-  { key: '6', text: 'Support agent' },
-  { key: '7', text: 'Research agent' },
-];

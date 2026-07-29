@@ -358,7 +358,7 @@ export function TeamSettingsHub({
             </SettingsSection>
 
             <SettingsSection title="Team hierarchy">
-              <div className="bg-muted/30 px-4 py-3.5">
+              <div className="bg-background/50 px-4 py-3.5">
                 <p className="text-sm leading-snug text-muted-foreground">
                   Teams can be nested to reflect your team structure and to share
                   workflows and settings.

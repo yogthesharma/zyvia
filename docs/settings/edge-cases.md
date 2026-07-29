@@ -68,12 +68,38 @@
 14. **Empty danger zone** — section omitted when the viewer has no leave/manage actions.
 15. **Settings back link** — `SettingsSubpage` sticky top-left in the scrolling main pane.
 16. **General settings** — name/icon/key/description/timezone/estimation + email-intake and detailed-history flags; managers only (team owner/admin or workspace owner/admin); deleted teams 404; members can view read-only.
-17. **Identifier rename** — unique per workspace; reserved `NEW` blocked; after save navigate to `/settings/teams/{key}/general`. Issue identifiers are derived as `{key}-{number}`, so they update with the key.
-18. **Description** — optional, trimmed, max 500 chars (client + DB check); whitespace-only saves as empty.
+17. **Identifier rename** — sanitize while typing (A–Z only, max 4) like workspace slug; unique per workspace; reserved `NEW` blocked; invalid/empty restores previous + toast; after save hard-navigate (`location.assign`) to `/settings/teams/{key}/general`. Issue identifiers are derived as `{key}-{number}`.
+18. **Description** — optional, trimmed, max 500 chars; rendered full-width outside a settings card; whitespace-only saves as empty.
 19. **Email intake / detailed history** — persisted toggles only; delivery and history writers are not shipped yet.
 20. **Concurrent field saves** — per-field pending + request ids; rollback only the failed field; successful responses preserve other in-flight optimistic fields; ignore `initialTeam` refresh while any field is pending.
 21. **No-op patches** — server skips unchanged values (no empty updates); update also requires `deleted_at is null`.
-22. **Key rename navigation** — `router.replace` to the new general URL; do not `refresh()` the old key URL.
+22. **Key rename navigation** — hard navigate to the new general URL; do not `refresh()` the old key URL.
+23. **General chrome** — page title is **General**; sticky top-left control is team icon + name linking to the team hub (no Back label).
+24. **Estimation options** — when issue estimation ≠ “Not in use”, show allow-zero / extended-scale / count-unestimated toggles; values persist when estimation is turned off.
+
+## Members
+
+1. **Workspace list** — any member can view; invite/revoke/export only for owner/admin; members soft-fail to `notFound()` on query errors.
+2. **Invites** — emails lowercased + validated; skip already-members and pending duplicates; max 50 per batch; cannot invite as owner; email delivery deferred (pending rows only).
+3. **Revoke** — only pending invites; idempotent miss → “Invite not found.”
+4. **Team add** — candidates are workspace members not already on the team; team managers or workspace admins only; insert role defaults to member (not owner).
+5. **Sole team owner** — cannot remove or demote the last owner.
+6. **Role display** — workspace owner/admin show as “Workspace owner/admin” on team list (read-only badge); team roles editable for non-elevated members.
+7. **Last seen** — approximated from max session activity; “Online” within 5 minutes; empty → “—”.
+8. **Deletion scheduled** — workspace invites blocked while deletion is scheduled.
+9. **Directory RPC** — emails/last-seen only for callers who are workspace members (`workspace_member_directory`).
+
+## Documents
+
+1. Members can view templates; only owners/admins create/edit/delete — and not while workspace deletion is scheduled.
+2. Workspace Documents settings only lists/creates templates with `team_id IS NULL`.
+3. Create/edit requires a non-empty name; body may be empty; Create disabled until name is set.
+4. Name ≤ 120; icon Lucide kebab-case ≤ 64; body plain text ≤ 100_000 (client + server).
+5. Edit with no changes does not bump `updated_at`; client navigates back without a write.
+6. Invalid / foreign template ids → `notFound()` (UUID check before query).
+7. Redirects only use validated workspace slugs.
+8. Empty body stores `body_doc = null` and `body_text = ''`.
+9. Team templates and the documents product surface are **not** shipped yet (see `documents.md`).
 
 ## General
 
@@ -81,7 +107,7 @@
 2. Settings top padding is `pt-12` on `SettingsPage` (intentional spacing).
 3. Settings shell: sidebar fixed, **main pane** scrolls (`settings-shell.tsx`).
 4. Settings subpage back links use `SettingsSubpage` / `SettingsBackLink` — sticky `top-4 left-4` in the scrolling main pane (not `absolute` that scrolls away).
-5. **Surface chrome** — settings/list shells use muted fills (no hairline borders). Sidebars keep `border-r` for pane separation; app shell header keeps `border-b` so scrolled content doesn’t collide with chrome.
+5. **Surface chrome** — owned in `app/globals.css` via `--surface` / `--control*` tokens and unlayered `[data-slot]` rules (not per-component class soup). Settings/list shells use `data-slot="surface"`; fields use `data-slot="input"|textarea|select-trigger|control`. Sidebars keep `border-r` for pane separation; app shell header keeps `border-b` so scrolled content doesn’t collide with chrome.
 6. **Sidebar width** — app and settings sidebars both use **16rem** (`Sidebar` `SIDEBAR_WIDTH` / settings `w-64`). Don’t regress to `w-60`.
-7. **Borderless fields** — `Input`/`Textarea`/`Select` rest on muted fill; focus uses ring + `bg-background` so controls stay visible inside muted `SettingsSection` shells.
+7. **Borderless fields** — soft fills come from global `--control` tokens; focus uses ring + `--background`. Don’t re-add `bg-muted/50` / `border-input` fills on individual UI files (theme re-applies will fight them).
 8. **Floating layers** — dialogs/menus/popovers keep soft ring + shadow so they don’t dissolve into the page.

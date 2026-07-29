@@ -110,9 +110,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
+      data-slot={variant === "surface" ? "surface" : undefined}
       className={cn(
         "w-full min-w-0",
-        variant === "surface" && "overflow-hidden rounded-lg bg-muted/20",
+        variant === "surface" && "overflow-hidden rounded-lg",
         className
       )}
     >

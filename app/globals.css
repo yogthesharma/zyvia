@@ -7,76 +7,104 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.148 0.004 228.8);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.148 0.004 228.8);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.148 0.004 228.8);
-    --primary: oklch(0.218 0.008 223.9);
-    --primary-foreground: oklch(0.987 0.002 197.1);
-    --secondary: oklch(0.963 0.002 197.1);
-    --secondary-foreground: oklch(0.218 0.008 223.9);
-    --muted: oklch(0.963 0.002 197.1);
-    --muted-foreground: oklch(0.56 0.021 213.5);
-    --accent: oklch(0.218 0.008 223.9);
-    --accent-foreground: oklch(0.987 0.002 197.1);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.925 0.005 214.3);
-    --input: oklch(0.925 0.005 214.3);
-    --ring: oklch(0.723 0.014 214.4);
-    --chart-1: oklch(0.811 0.111 293.571);
-    --chart-2: oklch(0.606 0.25 292.717);
-    --chart-3: oklch(0.541 0.281 293.009);
-    --chart-4: oklch(0.491 0.27 292.581);
-    --chart-5: oklch(0.432 0.232 292.759);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.987 0.002 197.1);
-    --sidebar-foreground: oklch(0.148 0.004 228.8);
-    --sidebar-primary: oklch(0.218 0.008 223.9);
-    --sidebar-primary-foreground: oklch(0.987 0.002 197.1);
-    --sidebar-accent: oklch(0.963 0.002 197.1);
-    --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-    --sidebar-border: oklch(0.925 0.005 214.3);
-    --sidebar-ring: oklch(0.723 0.014 214.4);
+    --background: oklch(0.9881 0.0000 0.0000);
+    --foreground: oklch(0.2221 0.0000 0.0000);
+    --card: oklch(1.0000 0.0000 0.0000);
+    --card-foreground: oklch(0.0000 0.0000 0.0000);
+    --popover: oklch(1.0000 0.0000 0.0000);
+    --popover-foreground: oklch(0.0000 0.0000 0.0000);
+    --primary: oklch(0.6076 0.1404 276.7418);
+    --primary-foreground: oklch(1.0000 0.0000 0.0000);
+    --secondary: oklch(0.2221 0.0000 0.0000);
+    --secondary-foreground: oklch(0.9881 0.0000 0.0000);
+    --muted: oklch(0.9439 0.0040 286.3226);
+    --muted-foreground: oklch(0.5561 0.0110 273.2406);
+    --accent: oklch(0.8963 0.0194 276.3236);
+    --accent-foreground: oklch(0.0000 0.0000 0.0000);
+    --destructive: oklch(0.5475 0.1038 77.6126);
+    --border: oklch(0.9310 0.0000 0.0000);
+    --input: oklch(0.9310 0.0000 0.0000);
+    --ring: oklch(0.5365 0.0025 17.2345);
+    /* Soft chrome (no hairline borders) — owned globally, not per-component. */
+    --control: color-mix(in oklab, var(--muted) 50%, transparent);
+    --control-hover: color-mix(in oklab, var(--muted) 65%, transparent);
+    --control-disabled: color-mix(in oklab, var(--muted) 30%, transparent);
+    --control-strong: var(--muted);
+    --surface: color-mix(in oklab, var(--muted) 40%, transparent);
+    --chart-1: oklch(0.5296 0.0025 17.2358);
+    --chart-2: oklch(0.5009 0.0975 171.0601);
+    --chart-3: oklch(0.7107 0.0023 17.2118);
+    --chart-4: oklch(0.3635 0.0731 168.6280);
+    --chart-5: oklch(0.3466 0.0028 17.2907);
+    /* Absolute px so radius stays Linear-correct at the app's 14px root. */
+    --radius: 6px;
+    --sidebar: oklch(0.9881 0.0000 0.0000);
+    --sidebar-foreground: oklch(0.0000 0.0000 0.0000);
+    --sidebar-primary: oklch(0.4368 0.0026 17.2571);
+    --sidebar-primary-foreground: oklch(1.0000 0.0000 0.0000);
+    --sidebar-accent: oklch(1.0000 0.0000 0.0000);
+    --sidebar-accent-foreground: oklch(0.0000 0.0000 0.0000);
+    --sidebar-border: oklch(0.9040 0.0055 274.9596);
+    --sidebar-ring: oklch(0.5365 0.0025 17.2345);
     --highlight: oklch(0.852 0.199 91.936);
-    --brand: oklch(0.623 0.214 259.815);
+    --brand: oklch(0.6076 0.1404 276.7418);
+    --shadow-2xs: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.01);
+    --shadow-xs: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.01);
+    --shadow-sm: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.03), 0px 1px 2px 0px oklch(0.0000 0.0000 0.0000 / 0.03);
+    --shadow: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.03), 0px 1px 2px 0px oklch(0.0000 0.0000 0.0000 / 0.03);
+    --shadow-md: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.03), 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.03);
+    --shadow-lg: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.03), 0px 4px 6px 0px oklch(0.0000 0.0000 0.0000 / 0.03);
+    --shadow-xl: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.03), 0px 8px 10px 0px oklch(0.0000 0.0000 0.0000 / 0.03);
+    --shadow-2xl: 0px 0px 3px 1px oklch(0.0000 0.0000 0.0000 / 0.07);
 }
 
 .dark {
-    --background: oklch(0.148 0.004 228.8);
-    --foreground: oklch(0.987 0.002 197.1);
-    --card: oklch(0.218 0.008 223.9);
-    --card-foreground: oklch(0.987 0.002 197.1);
-    --popover: oklch(0.218 0.008 223.9);
-    --popover-foreground: oklch(0.987 0.002 197.1);
-    --primary: oklch(0.925 0.005 214.3);
-    --primary-foreground: oklch(0.218 0.008 223.9);
-    --secondary: oklch(0.275 0.011 216.9);
-    --secondary-foreground: oklch(0.987 0.002 197.1);
-    --muted: oklch(0.275 0.011 216.9);
-    --muted-foreground: oklch(0.723 0.014 214.4);
-    --accent: oklch(0.925 0.005 214.3);
-    --accent-foreground: oklch(0.218 0.008 223.9);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.56 0.021 213.5);
-    --chart-1: oklch(0.811 0.111 293.571);
-    --chart-2: oklch(0.606 0.25 292.717);
-    --chart-3: oklch(0.541 0.281 293.009);
-    --chart-4: oklch(0.491 0.27 292.581);
-    --chart-5: oklch(0.432 0.232 292.759);
-    --sidebar: oklch(0.218 0.008 223.9);
-    --sidebar-foreground: oklch(0.987 0.002 197.1);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.987 0.002 197.1);
-    --sidebar-accent: oklch(0.275 0.011 216.9);
-    --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.56 0.021 213.5);
+    --background: oklch(0.1735 0.0020 286.1848);
+    --foreground: oklch(0.9187 0.0029 264.5414);
+    --card: oklch(0.2088 0.0042 264.4766);
+    --card-foreground: oklch(1.0000 0.0000 0.0000);
+    --popover: oklch(0.1452 0.0021 286.1313);
+    --popover-foreground: oklch(1.0000 0.0000 0.0000);
+    --primary: oklch(0.9249 0.0000 0.0000);
+    --primary-foreground: oklch(0.0000 0.0000 0.0000);
+    --secondary: oklch(0.6518 0.1348 275.3355);
+    --secondary-foreground: oklch(0.9187 0.0029 264.5414);
+    --muted: oklch(0.1917 0.0020 286.2102);
+    --muted-foreground: oklch(0.7123 0.0045 271.3506);
+    --accent: oklch(0.3331 0.0361 273.4393);
+    --accent-foreground: oklch(1.0000 0.0000 0.0000);
+    --destructive: oklch(0.7210 0.1130 95.0663);
+    --border: oklch(0.2655 0.0094 276.7468);
+    --input: oklch(0.3612 0.0140 274.5258);
+    --ring: oklch(0.6263 0.0064 264.5173);
+    --control: color-mix(in oklab, var(--input) 40%, transparent);
+    --control-hover: color-mix(in oklab, var(--input) 50%, transparent);
+    --control-disabled: color-mix(in oklab, var(--input) 20%, transparent);
+    --control-strong: color-mix(in oklab, var(--input) 60%, transparent);
+    --surface: color-mix(in oklab, var(--muted) 80%, transparent);
+    --chart-1: oklch(0.6292 0.0083 260.7307);
+    --chart-2: oklch(0.6597 0.1295 170.7535);
+    --chart-3: oklch(0.8227 0.0047 258.3273);
+    --chart-4: oklch(0.4653 0.0954 166.9717);
+    --chart-5: oklch(0.4347 0.0121 267.2367);
+    --sidebar: oklch(0.1390 0.0029 246.2561);
+    --sidebar-foreground: oklch(1.0000 0.0000 0.0000);
+    --sidebar-primary: oklch(0.9187 0.0029 264.5414);
+    --sidebar-primary-foreground: oklch(0.0000 0.0000 0.0000);
+    --sidebar-accent: oklch(0.1349 0.0024 286.0738);
+    --sidebar-accent-foreground: oklch(1.0000 0.0000 0.0000);
+    --sidebar-border: oklch(0.2605 0.0058 271.1914);
+    --sidebar-ring: oklch(0.6263 0.0064 264.5173);
     --highlight: oklch(0.852 0.199 91.936);
-    --brand: oklch(0.707 0.165 254.624);
+    --brand: oklch(0.6518 0.1348 275.3355);
+    --shadow-2xs: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.05);
+    --shadow-xs: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.05);
+    --shadow-sm: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.10), 0px 1px 2px -1px oklch(0.0000 0.0000 0.0000 / 0.10);
+    --shadow: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.10), 0px 1px 2px -1px oklch(0.0000 0.0000 0.0000 / 0.10);
+    --shadow-md: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.10), 0px 2px 4px -1px oklch(0.0000 0.0000 0.0000 / 0.10);
+    --shadow-lg: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.10), 0px 4px 6px -1px oklch(0.0000 0.0000 0.0000 / 0.10);
+    --shadow-xl: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.10), 0px 8px 10px -1px oklch(0.0000 0.0000 0.0000 / 0.10);
+    --shadow-2xl: 0px 2px 4px 0px oklch(0.0000 0.0000 0.0000 / 0.25);
 }
 
 @theme inline {
@@ -114,15 +142,29 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
+    --radius-xs: 0px;
+    --radius-sm: 2px;
+    --radius-md: 4px;
     --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --radius-xl: 10px;
+    --radius-2xl: 14px;
+    --radius-3xl: 18px;
+    --radius-4xl: 22px;
+    --shadow-2xs: var(--shadow-2xs);
+    --shadow-xs: var(--shadow-xs);
+    --shadow-sm: var(--shadow-sm);
+    --shadow: var(--shadow);
+    --shadow-md: var(--shadow-md);
+    --shadow-lg: var(--shadow-lg);
+    --shadow-xl: var(--shadow-xl);
+    --shadow-2xl: var(--shadow-2xl);
     --color-brand: var(--brand);
     --color-highlight: var(--highlight);
+    --color-control: var(--control);
+    --color-control-hover: var(--control-hover);
+    --color-control-disabled: var(--control-disabled);
+    --color-control-strong: var(--control-strong);
+    --color-surface: var(--surface);
 }
 
 @layer base {
@@ -175,3 +217,74 @@
     text-underline-offset: 2px;
     }
 }
+
+/*
+  Soft chrome lives here (unlayered) so it wins over utility classes on
+  components — including after `shadcn` theme/preset re-applies rewrite files.
+  Components keep layout/behavior; surfaces stay token-driven.
+*/
+:where([data-slot="input"]),
+:where([data-slot="textarea"]),
+:where([data-slot="select-trigger"]),
+:where([data-slot="button"][data-variant="outline"]),
+:where([data-slot="badge"][data-variant="outline"]),
+:where([data-slot="control"]) {
+  border-color: transparent;
+  background-color: var(--control);
+}
+
+:where([data-slot="input"]):hover:not(:disabled):not(:focus-visible),
+:where([data-slot="textarea"]):hover:not(:disabled):not(:focus-visible),
+:where([data-slot="select-trigger"]):hover:not(:disabled):not(:focus-visible),
+:where([data-slot="control"]):hover:not(:disabled):not(:focus-visible) {
+  background-color: var(--control-hover);
+}
+
+:where([data-slot="button"][data-variant="outline"]):hover:not(:disabled),
+:where([data-slot="button"][data-variant="outline"])[aria-expanded="true"],
+:where([data-slot="badge"][data-variant="outline"]):hover {
+  background-color: var(--muted);
+}
+
+:where([data-slot="input"]):focus-visible,
+:where([data-slot="textarea"]):focus-visible,
+:where([data-slot="select-trigger"]):focus-visible,
+:where([data-slot="control"]):focus-visible {
+  border-color: var(--ring);
+  background-color: var(--background);
+}
+
+:where([data-slot="input"]):disabled,
+:where([data-slot="textarea"]):disabled,
+:where([data-slot="select-trigger"]):disabled,
+:where([data-slot="control"]):disabled {
+  background-color: var(--control-disabled);
+}
+
+:where([data-slot="checkbox"]):not([data-state="checked"]),
+:where([data-slot="switch"][data-state="unchecked"]) {
+  border-color: transparent;
+  background-color: var(--control-strong);
+}
+
+:where([data-slot="checkbox"]):not([data-state="checked"]):hover:not(:disabled) {
+  background-color: color-mix(in oklab, var(--control-strong) 80%, transparent);
+}
+
+:where([data-slot="surface"]) {
+  background-color: var(--surface);
+}
+
+/* Nested fields inside composite controls stay transparent. */
+:where([data-slot="control"] [data-slot="input"]),
+:where([data-slot="control"] [data-slot="textarea"]),
+:where([data-slot="control"] [data-slot="input"]):hover,
+:where([data-slot="control"] [data-slot="textarea"]):hover,
+:where([data-slot="control"] [data-slot="input"]):focus-visible,
+:where([data-slot="control"] [data-slot="textarea"]):focus-visible,
+:where([data-slot="control"] [data-slot="input"]):disabled,
+:where([data-slot="control"] [data-slot="textarea"]):disabled {
+  border-color: transparent;
+  background-color: transparent;
+}
+

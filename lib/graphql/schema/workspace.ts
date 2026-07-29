@@ -1,6 +1,8 @@
 import { GraphQLError } from "graphql"
 
 import type { Builder } from "@/lib/graphql/builder"
+import { richDocToPlainText } from "@/lib/rich-editor/plain-text"
+import { isEmptyRichDoc, parseRichDocInput } from "@/lib/rich-editor/schema"
 
 export type WorkspaceRow = {
   id: string
@@ -34,6 +36,7 @@ export type IssueRow = {
   number: number
   title: string
   description: string | null
+  description_doc?: unknown | null
   status_id: string
   priority: number
   assignee_id: string | null
@@ -45,9 +48,43 @@ export type IssueRow = {
   status?: WorkflowStateRow | null
 }
 
+const ISSUE_SELECT = `
+  id, workspace_id, team_id, number, title, description, description_doc, status_id,
+  priority, assignee_id, creator_id, created_at, updated_at,
+  team:teams(id, workspace_id, name, key, issue_counter),
+  status:workflow_states(id, team_id, name, category, position, is_default, color)
+`
+
 function asOne<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null
   return Array.isArray(value) ? (value[0] ?? null) : value
+}
+
+function mapIssueRow(row: Record<string, unknown>): IssueRow {
+  return {
+    ...(row as unknown as IssueRow),
+    team: asOne(row.team as TeamRow | TeamRow[] | null),
+    status: asOne(row.status as WorkflowStateRow | WorkflowStateRow[] | null),
+  }
+}
+
+function resolveDescriptionFields(input: {
+  description?: string | null | undefined
+  descriptionDoc?: unknown
+}) {
+  if (input.descriptionDoc !== undefined && input.descriptionDoc !== null) {
+    const doc = parseRichDocInput(input.descriptionDoc)
+    const plain =
+      isEmptyRichDoc(doc) ? null : richDocToPlainText(doc) || null
+    return {
+      description: plain,
+      description_doc: isEmptyRichDoc(doc) ? null : doc,
+    }
+  }
+  return {
+    description: input.description ?? null,
+    description_doc: undefined as unknown | undefined,
+  }
 }
 
 export function registerWorkspace(builder: Builder) {
@@ -82,31 +119,14 @@ export function registerWorkspace(builder: Builder) {
         resolve: async (workspace, args, ctx) => {
           const { data, error } = await ctx.supabase
             .from("issues")
-            .select(
-              `
-              id, workspace_id, team_id, number, title, description, status_id,
-              priority, assignee_id, creator_id, created_at, updated_at,
-              team:teams(id, workspace_id, name, key, issue_counter),
-              status:workflow_states(id, team_id, name, category, position, is_default, color)
-            `
-            )
+            .select(ISSUE_SELECT)
             .eq("workspace_id", workspace.id)
             .order("created_at", { ascending: false })
             .limit(args.limit ?? 100)
 
           if (error) throw new GraphQLError(error.message)
 
-          return (data ?? []).map((row) => {
-            const team = asOne(row.team as TeamRow | TeamRow[] | null)
-            const status = asOne(
-              row.status as WorkflowStateRow | WorkflowStateRow[] | null
-            )
-            return {
-              ...row,
-              team,
-              status,
-            } as IssueRow
-          })
+          return (data ?? []).map((row) => mapIssueRow(row))
         },
       }),
     }),
@@ -138,6 +158,11 @@ export function registerWorkspace(builder: Builder) {
       number: t.exposeInt("number"),
       title: t.exposeString("title"),
       description: t.exposeString("description", { nullable: true }),
+      descriptionDoc: t.field({
+        type: "JSON",
+        nullable: true,
+        resolve: (issue) => issue.description_doc ?? null,
+      }),
       priority: t.exposeInt("priority"),
       createdAt: t.expose("created_at", { type: "DateTime" }),
       updatedAt: t.expose("updated_at", { type: "DateTime" }),
@@ -211,13 +236,51 @@ export function registerWorkspace(builder: Builder) {
     })
   )
 
+  builder.queryField("issue", (t) =>
+    t.field({
+      type: IssueRef,
+      nullable: true,
+      args: {
+        id: t.arg.id({ required: true }),
+      },
+      resolve: async (_root, args, ctx) => {
+        if (!ctx.user) {
+          throw new GraphQLError("Unauthorized", {
+            extensions: { code: "UNAUTHORIZED" },
+          })
+        }
+
+        const { data, error } = await ctx.supabase
+          .from("issues")
+          .select(ISSUE_SELECT)
+          .eq("id", args.id)
+          .maybeSingle()
+
+        if (error) throw new GraphQLError(error.message)
+        if (!data) return null
+        return mapIssueRow(data)
+      },
+    })
+  )
+
   const IssueCreateInput = builder.inputType("IssueCreateInput", {
     fields: (t) => ({
       workspaceId: t.id({ required: true }),
       teamId: t.id({ required: true }),
       title: t.string({ required: true }),
       description: t.string(),
+      descriptionDoc: t.field({ type: "JSON" }),
       priority: t.int({ defaultValue: 0 }),
+    }),
+  })
+
+  const IssueUpdateInput = builder.inputType("IssueUpdateInput", {
+    fields: (t) => ({
+      id: t.id({ required: true }),
+      title: t.string(),
+      description: t.string(),
+      descriptionDoc: t.field({ type: "JSON" }),
+      priority: t.int(),
     }),
   })
 
@@ -266,35 +329,94 @@ export function registerWorkspace(builder: Builder) {
           throw new GraphQLError("No default workflow state for this team")
         }
 
+        const desc = resolveDescriptionFields({
+          description: args.input.description,
+          descriptionDoc: args.input.descriptionDoc,
+        })
+
+        const insertRow: Record<string, unknown> = {
+          workspace_id: args.input.workspaceId,
+          team_id: args.input.teamId,
+          title,
+          description: desc.description,
+          priority,
+          status_id: defaultStatus.id,
+          creator_id: ctx.user.id,
+          number: 0,
+        }
+        if (desc.description_doc !== undefined) {
+          insertRow.description_doc = desc.description_doc
+        }
+
         const { data, error } = await ctx.supabase
           .from("issues")
-          .insert({
-            workspace_id: args.input.workspaceId,
-            team_id: args.input.teamId,
-            title,
-            description: args.input.description ?? null,
-            priority,
-            status_id: defaultStatus.id,
-            creator_id: ctx.user.id,
-            number: 0,
-          })
-          .select(
-            `
-            id, workspace_id, team_id, number, title, description, status_id,
-            priority, assignee_id, creator_id, created_at, updated_at,
-            team:teams(id, workspace_id, name, key, issue_counter),
-            status:workflow_states(id, team_id, name, category, position, is_default, color)
-          `
-          )
+          .insert(insertRow)
+          .select(ISSUE_SELECT)
           .single()
 
         if (error) throw new GraphQLError(error.message)
 
-        return {
-          ...data,
-          team: asOne(data.team as TeamRow | TeamRow[] | null),
-          status: asOne(data.status as WorkflowStateRow | WorkflowStateRow[] | null),
-        } as IssueRow
+        return mapIssueRow(data)
+      },
+    })
+  )
+
+  builder.mutationField("issueUpdate", (t) =>
+    t.field({
+      type: IssueRef,
+      args: {
+        input: t.arg({ type: IssueUpdateInput, required: true }),
+      },
+      resolve: async (_root, args, ctx) => {
+        if (!ctx.user) {
+          throw new GraphQLError("Unauthorized", {
+            extensions: { code: "UNAUTHORIZED" },
+          })
+        }
+
+        const patch: Record<string, unknown> = {}
+
+        if (args.input.title !== undefined && args.input.title !== null) {
+          const title = args.input.title.trim()
+          if (!title) throw new GraphQLError("Title is required")
+          patch.title = title
+        }
+
+        if (args.input.priority !== undefined && args.input.priority !== null) {
+          if (args.input.priority < 0 || args.input.priority > 4) {
+            throw new GraphQLError("Priority must be between 0 and 4")
+          }
+          patch.priority = args.input.priority
+        }
+
+        if (
+          args.input.descriptionDoc !== undefined ||
+          args.input.description !== undefined
+        ) {
+          const desc = resolveDescriptionFields({
+            description: args.input.description,
+            descriptionDoc: args.input.descriptionDoc,
+          })
+          patch.description = desc.description
+          if (desc.description_doc !== undefined) {
+            patch.description_doc = desc.description_doc
+          }
+        }
+
+        if (Object.keys(patch).length === 0) {
+          throw new GraphQLError("No fields to update")
+        }
+
+        const { data, error } = await ctx.supabase
+          .from("issues")
+          .update(patch)
+          .eq("id", args.input.id)
+          .select(ISSUE_SELECT)
+          .single()
+
+        if (error) throw new GraphQLError(error.message)
+
+        return mapIssueRow(data)
       },
     })
   )

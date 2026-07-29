@@ -166,7 +166,7 @@ export function AgentPersonalizationForm({
           maxLength={MAX_GUIDANCE_LENGTH}
           placeholder="Enter personal guidance for the Zyvia Agent (optional)..."
           className={cn(
-            "min-h-36 resize-y bg-card/40",
+            "min-h-36 resize-y",
             pending && "opacity-50"
           )}
           onChange={(event) => setGuidance(event.target.value)}
@@ -185,7 +185,7 @@ export function AgentPersonalizationForm({
             commands.
           </p>
         </div>
-        <div className="overflow-hidden rounded-lg bg-muted/20">
+        <div data-slot="surface" className="overflow-hidden rounded-lg">
           {skills.length === 0 ? (
             <div className="flex items-center justify-between px-4 py-3">
               <p className="text-sm text-muted-foreground">No skills created</p>
@@ -228,7 +228,7 @@ export function AgentPersonalizationForm({
                   )
                 })}
               </ul>
-              <div className="flex justify-end bg-muted/30 px-2 py-1.5">
+              <div className="flex justify-end bg-background/50 px-2 py-1.5">
                 <Button
                   type="button"
                   variant="ghost"
