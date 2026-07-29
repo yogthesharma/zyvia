@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { AppShell } from "@/components/app/app-shell"
+import { WorkspaceChrome } from "@/components/app/workspace-chrome"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
 import { createClient } from "@/lib/supabase/server"
 
@@ -32,12 +32,23 @@ export default async function WorkspaceLayout({
 
   if (!membership) notFound()
 
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, name, key")
+    .eq("workspace_id", workspace.id)
+    .order("name")
+
   return (
-    <AppShell
-      workspace={{ name: workspace.name, slug: workspace.slug }}
+    <WorkspaceChrome
+      workspace={{
+        id: workspace.id,
+        name: workspace.name,
+        slug: workspace.slug,
+      }}
+      teams={teams ?? []}
       user={{ email: user.email, fullName: profile.full_name }}
     >
       {children}
-    </AppShell>
+    </WorkspaceChrome>
   )
 }
