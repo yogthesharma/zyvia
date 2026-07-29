@@ -1,4 +1,15 @@
+import type { Metadata } from "next"
+
 import { Button } from "@/components/ui/button"
+import { siteConfig } from "@/lib/site"
+
+export const metadata: Metadata = {
+  // Same segment as root layout — template does not apply; use absolute title.
+  title: {
+    absolute: siteConfig.name,
+  },
+  description: siteConfig.description,
+}
 
 export default function Page() {
   return (
