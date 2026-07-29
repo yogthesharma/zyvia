@@ -6,6 +6,7 @@ Linear-like project management, built with Next.js.
 
 - **Next.js** (App Router) + TypeScript on **Vercel**
 - **Supabase** (via Vercel Marketplace) — Postgres + Auth + RLS
+- **GraphQL** — Pothos + GraphQL Yoga at `/api/graphql`
 - **Tailwind CSS** + **shadcn/ui**
 - **Inter** as the base font
 
@@ -14,9 +15,16 @@ Linear-like project management, built with Next.js.
 - Public: `/`, `/login`, `/signup`, `/privacy`, `/terms`
 - Auth: email + password (Supabase)
 - Onboarding: one question per page (profile → workspace → team → theme → invite)
-- App: Linear-ish shell at `/w/[slug]/issues`
+- App: Linear-ish shell at `/w/[slug]/issues` (issues loaded via GraphQL)
 
 Schema lives in `supabase/migrations/`.
+
+## GraphQL
+
+- Endpoint: [`/api/graphql`](http://localhost:3000/api/graphql) (GraphiQL in development)
+- Server execute helper: `executeGraphQL()` in `lib/graphql/execute.ts`
+- Queries: `viewer`, `workspace(slug)` → `issues` / `teams`
+- Mutations: `issueCreate`
 
 ## Getting started
 
