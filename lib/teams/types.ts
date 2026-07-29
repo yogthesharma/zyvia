@@ -27,15 +27,29 @@ export type TeamSummary = {
 
 export type TeamSettings = TeamSummary & {
   workspaceId: string
+  description: string
   estimationScale: TeamEstimationScale
   parentTeamId: string | null
   triageEnabled: boolean
+  emailIntakeEnabled: boolean
+  detailedIssueHistory: boolean
   workflowStateCount: number
   membershipRole: "owner" | "admin" | "member" | null
   /** Current user is on the team. */
   isMember: boolean
   /** Can retire/delete or edit team settings (team owner/admin or workspace owner/admin). */
   canManage: boolean
+}
+
+export type TeamGeneralSettingsUpdate = {
+  name?: string
+  key?: string
+  icon?: string | null
+  description?: string
+  timezone?: string
+  estimationScale?: TeamEstimationScale
+  emailIntakeEnabled?: boolean
+  detailedIssueHistory?: boolean
 }
 
 export type CreateTeamInput = {

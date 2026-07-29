@@ -209,8 +209,6 @@ export function SettingsSidebar({
                       pathname === item.href ||
                       (item.href.endsWith("/preferences") &&
                         pathname === `/w/${workspace.slug}/settings`) ||
-                      (item.href.endsWith("/teams") &&
-                        pathname.startsWith(`${item.href}/`)) ||
                       (item.href.endsWith("/agent-personalization") &&
                         pathname.startsWith(`${base}/skill`))
                     }

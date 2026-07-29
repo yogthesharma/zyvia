@@ -17,7 +17,7 @@ Laptop sessions can get heavy; prefer a fresh thread on Mac Mini and point the a
 | Agent personalization | Guidance + Skills E2E | MCP omitted for now; see `agent-personalization.md` |
 | SLAs | Settings E2E | Enable, work week, rules; issue evaluation deferred — `slas.md` |
 | Workspace (Administration) | Done E2E | Logo, name, slug (+ former-slug redirects), fiscal year, region, scheduled deletion |
-| Teams / Members / others | Teams list + hub E2E | Per-team subpages mostly stubs; see edge-cases |
+| Teams / Members / others | Teams list + hub + General E2E | Other per-team subpages mostly stubs; see edge-cases |
 
 ## Product conventions (Linear-like)
 

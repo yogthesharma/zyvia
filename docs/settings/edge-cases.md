@@ -67,6 +67,13 @@
 13. **Parent team** — same-workspace enforced by trigger; self-parent blocked by check.
 14. **Empty danger zone** — section omitted when the viewer has no leave/manage actions.
 15. **Settings back link** — `SettingsSubpage` sticky top-left in the scrolling main pane.
+16. **General settings** — name/icon/key/description/timezone/estimation + email-intake and detailed-history flags; managers only (team owner/admin or workspace owner/admin); deleted teams 404; members can view read-only.
+17. **Identifier rename** — unique per workspace; reserved `NEW` blocked; after save navigate to `/settings/teams/{key}/general`. Issue identifiers are derived as `{key}-{number}`, so they update with the key.
+18. **Description** — optional, trimmed, max 500 chars (client + DB check); whitespace-only saves as empty.
+19. **Email intake / detailed history** — persisted toggles only; delivery and history writers are not shipped yet.
+20. **Concurrent field saves** — per-field pending + request ids; rollback only the failed field; successful responses preserve other in-flight optimistic fields; ignore `initialTeam` refresh while any field is pending.
+21. **No-op patches** — server skips unchanged values (no empty updates); update also requires `deleted_at is null`.
+22. **Key rename navigation** — `router.replace` to the new general URL; do not `refresh()` the old key URL.
 
 ## General
 

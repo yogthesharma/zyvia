@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import type { ReactNode } from "react"
 import { CaretLeftIcon, InfoIcon } from "@phosphor-icons/react"
 
 import {
@@ -43,7 +44,7 @@ export function SettingsSubpage({
 }: {
   backHref: string
   backLabel: string
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }) {
   return (
@@ -64,7 +65,7 @@ export function SettingsPage({
   title: string
   description?: string
   width?: "narrow" | "full"
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }) {
   return (
@@ -88,14 +89,23 @@ export function SettingsPage({
 
 export function SettingsSection({
   title,
+  description,
   children,
 }: {
   title?: string
-  children: React.ReactNode
+  description?: ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="space-y-3">
-      {title ? <h2 className="text-sm font-medium">{title}</h2> : null}
+      {title || description ? (
+        <div className="space-y-1">
+          {title ? <h2 className="text-sm font-medium">{title}</h2> : null}
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+      ) : null}
       <div className="overflow-hidden rounded-lg bg-muted/20">
         {children}
       </div>

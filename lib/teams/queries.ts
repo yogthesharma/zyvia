@@ -1,3 +1,4 @@
+import { isValidWorkspaceSlug } from "@/lib/profile/schema"
 import { DEFAULT_TEAM_ICON, teamLifecycleStatus } from "@/lib/teams/schema"
 import type {
   TeamEstimationScale,
@@ -14,11 +15,14 @@ type TeamRow = {
   key: string
   icon: string | null
   timezone: string
+  description: string | null
   created_at: string
   visibility: TeamVisibility
   estimation_scale: TeamEstimationScale
   parent_team_id: string | null
   triage_enabled: boolean
+  email_intake_enabled: boolean
+  detailed_issue_history: boolean
   retired_at: string | null
   deleted_at: string | null
   issues?: { count: number }[] | null
@@ -27,7 +31,7 @@ type TeamRow = {
 }
 
 const TEAM_LIST_SELECT =
-  "id, workspace_id, name, key, icon, timezone, created_at, visibility, estimation_scale, parent_team_id, triage_enabled, retired_at, deleted_at, issues(count), team_members(count)"
+  "id, workspace_id, name, key, icon, timezone, description, created_at, visibility, estimation_scale, parent_team_id, triage_enabled, email_intake_enabled, detailed_issue_history, retired_at, deleted_at, issues(count), team_members(count)"
 
 const TEAM_DETAIL_SELECT = `${TEAM_LIST_SELECT}, workflow_states(count)`
 
@@ -68,9 +72,12 @@ function mapSettings(
   return {
     ...summary,
     workspaceId: row.workspace_id,
+    description: row.description ?? "",
     estimationScale: row.estimation_scale ?? "none",
     parentTeamId: row.parent_team_id,
     triageEnabled: Boolean(row.triage_enabled),
+    emailIntakeEnabled: Boolean(row.email_intake_enabled),
+    detailedIssueHistory: Boolean(row.detailed_issue_history),
     workflowStateCount: row.workflow_states?.[0]?.count ?? 0,
     membershipRole: membership.role,
     isMember,
@@ -112,6 +119,8 @@ export async function listWorkspaceTeamsOrNull(
 }
 
 export async function getWorkspaceBySlug(slug: string) {
+  if (!isValidWorkspaceSlug(slug)) return null
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("workspaces")

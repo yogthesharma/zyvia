@@ -3,12 +3,22 @@
 import { revalidatePath } from "next/cache"
 
 import {
+  DEFAULT_TEAM_ICON,
+  parseTeamBoolean,
+  parseTeamDescription,
+  parseTeamEstimationScale,
   parseTeamIcon,
   parseTeamKey,
   parseTeamName,
   parseTeamTimezone,
 } from "@/lib/teams/schema"
-import type { CreateTeamResult, TeamActionResult, TeamSummary } from "@/lib/teams/types"
+import { getTeamSettingsByKey } from "@/lib/teams/queries"
+import type {
+  CreateTeamResult,
+  TeamActionResult,
+  TeamGeneralSettingsUpdate,
+  TeamSummary,
+} from "@/lib/teams/types"
 import { createClient } from "@/lib/supabase/server"
 
 const UUID_RE =
@@ -344,6 +354,12 @@ async function loadManagedTeam(input: {
         id: string
         key: string
         name: string
+        icon: string | null
+        timezone: string
+        description: string
+        estimation_scale: string
+        email_intake_enabled: boolean
+        detailed_issue_history: boolean
         workspace_id: string
         retired_at: string | null
         deleted_at: string | null
@@ -364,7 +380,9 @@ async function loadManagedTeam(input: {
   const { supabase, userId } = auth
   const { data: team, error } = await supabase
     .from("teams")
-    .select("id, key, name, workspace_id, retired_at, deleted_at")
+    .select(
+      "id, key, name, icon, timezone, description, estimation_scale, email_intake_enabled, detailed_issue_history, workspace_id, retired_at, deleted_at"
+    )
     .eq("id", input.teamId)
     .eq("workspace_id", input.workspaceId)
     .maybeSingle()
@@ -400,7 +418,13 @@ async function loadManagedTeam(input: {
   return {
     supabase,
     userId,
-    team,
+    team: {
+      ...team,
+      description: team.description ?? "",
+      estimation_scale: team.estimation_scale ?? "none",
+      email_intake_enabled: Boolean(team.email_intake_enabled),
+      detailed_issue_history: Boolean(team.detailed_issue_history),
+    },
     membershipRole,
     canManage,
   }
@@ -602,3 +626,176 @@ export async function softDeleteTeam(input: {
     }
   }
 }
+
+export async function updateTeamGeneralSettings(input: {
+  workspaceId: string
+  workspaceSlug: string
+  teamId: string
+  patch: TeamGeneralSettingsUpdate
+}): Promise<TeamActionResult> {
+  try {
+    const loaded = await loadManagedTeam(input)
+    if ("error" in loaded) return { error: loaded.error }
+    const { supabase, userId, team, canManage } = loaded
+
+    if (team.deleted_at) {
+      return { error: "This team has been deleted." }
+    }
+    if (!canManage) {
+      return {
+        error: "Only team owners or admins can edit team settings.",
+      }
+    }
+
+    const patch: Record<string, unknown> = {}
+    let nextKey = team.key
+
+    if (input.patch.name !== undefined) {
+      const parsed = parseTeamName(input.patch.name)
+      if (parsed.error || !parsed.name) {
+        return { error: parsed.error ?? "Enter a team name." }
+      }
+      if (parsed.name !== team.name) patch.name = parsed.name
+    }
+
+    if (input.patch.key !== undefined) {
+      const parsed = parseTeamKey(input.patch.key)
+      if (parsed.error || !parsed.key) {
+        return { error: parsed.error ?? "Enter a team identifier." }
+      }
+      if (parsed.key !== team.key) {
+        patch.key = parsed.key
+        nextKey = parsed.key
+      }
+    }
+
+    if (input.patch.icon !== undefined) {
+      const parsed = parseTeamIcon(input.patch.icon)
+      if (parsed.error || !parsed.icon) {
+        return { error: parsed.error ?? "Invalid icon." }
+      }
+      if (parsed.icon !== (team.icon || DEFAULT_TEAM_ICON)) patch.icon = parsed.icon
+    }
+
+    if (input.patch.description !== undefined) {
+      const parsed = parseTeamDescription(input.patch.description)
+      if (parsed.error || parsed.description === undefined) {
+        return { error: parsed.error ?? "Enter a valid description." }
+      }
+      if (parsed.description !== team.description) {
+        patch.description = parsed.description
+      }
+    }
+
+    if (input.patch.timezone !== undefined) {
+      const parsed = parseTeamTimezone(input.patch.timezone)
+      if (parsed.error || !parsed.timezone) {
+        return { error: parsed.error ?? "Pick a timezone." }
+      }
+      if (parsed.timezone !== team.timezone) patch.timezone = parsed.timezone
+    }
+
+    if (input.patch.estimationScale !== undefined) {
+      const parsed = parseTeamEstimationScale(input.patch.estimationScale)
+      if (parsed.error || !parsed.estimationScale) {
+        return { error: parsed.error ?? "Pick a valid estimation scale." }
+      }
+      if (parsed.estimationScale !== team.estimation_scale) {
+        patch.estimation_scale = parsed.estimationScale
+      }
+    }
+
+    if (input.patch.emailIntakeEnabled !== undefined) {
+      const parsed = parseTeamBoolean(
+        input.patch.emailIntakeEnabled,
+        "email intake"
+      )
+      if (parsed.error || parsed.value === undefined) {
+        return { error: parsed.error ?? "Pick a valid email intake setting." }
+      }
+      if (parsed.value !== team.email_intake_enabled) {
+        patch.email_intake_enabled = parsed.value
+      }
+    }
+
+    if (input.patch.detailedIssueHistory !== undefined) {
+      const parsed = parseTeamBoolean(
+        input.patch.detailedIssueHistory,
+        "issue history"
+      )
+      if (parsed.error || parsed.value === undefined) {
+        return { error: parsed.error ?? "Pick a valid issue history setting." }
+      }
+      if (parsed.value !== team.detailed_issue_history) {
+        patch.detailed_issue_history = parsed.value
+      }
+    }
+
+    if (Object.keys(patch).length === 0) {
+      const current = await getTeamSettingsByKey({
+        workspaceId: input.workspaceId,
+        key: team.key,
+        userId,
+      })
+      if (!current) return { error: "Team not found." }
+      return { team: current }
+    }
+
+    const { data: updatedRows, error } = await supabase
+      .from("teams")
+      .update(patch)
+      .eq("id", team.id)
+      .eq("workspace_id", input.workspaceId)
+      .is("deleted_at", null)
+      .select("id")
+
+    if (error) {
+      if (error.code === "23505") {
+        return { error: "That identifier is already used by another team." }
+      }
+      if (error.code === "23514") {
+        return { error: "Those team settings are invalid." }
+      }
+      return { error: error.message }
+    }
+    if (!updatedRows?.length) {
+      return { error: "This team has been deleted." }
+    }
+
+    const updated = await getTeamSettingsByKey({
+      workspaceId: input.workspaceId,
+      key: nextKey,
+      userId,
+    })
+    if (!updated) return { error: "Team not found after save." }
+
+    revalidatePath(`/w/${input.workspaceSlug}`)
+    revalidatePath(`/w/${input.workspaceSlug}/settings/teams`)
+    revalidatePath(
+      `/w/${input.workspaceSlug}/settings/teams/${team.key.toLowerCase()}`
+    )
+    revalidatePath(
+      `/w/${input.workspaceSlug}/settings/teams/${team.key.toLowerCase()}/general`
+    )
+    revalidatePath(
+      `/w/${input.workspaceSlug}/settings/teams/${nextKey.toLowerCase()}`
+    )
+    revalidatePath(
+      `/w/${input.workspaceSlug}/settings/teams/${nextKey.toLowerCase()}/general`
+    )
+
+    const result: TeamActionResult = { team: updated }
+    if (nextKey !== team.key) {
+      result.redirectTo = `/w/${input.workspaceSlug}/settings/teams/${nextKey.toLowerCase()}/general`
+    }
+    return result
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Could not update team settings.",
+    }
+  }
+}
+

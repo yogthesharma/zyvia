@@ -103,3 +103,49 @@ export function parseTeamTimezone(timezone: unknown): {
   }
   return { timezone: trimmed }
 }
+
+export const MAX_TEAM_DESCRIPTION_LENGTH = 500
+
+export function parseTeamDescription(description: unknown): {
+  description?: string
+  error?: string
+} {
+  if (description == null) return { description: "" }
+  if (typeof description !== "string") {
+    return { error: "Enter a valid description." }
+  }
+  const trimmed = description.trim()
+  if (trimmed.length > MAX_TEAM_DESCRIPTION_LENGTH) {
+    return {
+      error: `Description must be ${MAX_TEAM_DESCRIPTION_LENGTH} characters or fewer.`,
+    }
+  }
+  return { description: trimmed }
+}
+
+export function parseTeamBoolean(
+  value: unknown,
+  label: string
+): { value?: boolean; error?: string } {
+  if (typeof value !== "boolean") {
+    return { error: `Pick a valid ${label} setting.` }
+  }
+  return { value }
+}
+
+export function estimationScaleLabel(scale: TeamEstimationScale) {
+  switch (scale) {
+    case "none":
+      return "Not in use"
+    case "exponential":
+      return "Exponential"
+    case "fibonacci":
+      return "Fibonacci"
+    case "linear":
+      return "Linear"
+    case "tshirt":
+      return "T-shirt"
+    default:
+      return scale
+  }
+}

@@ -10,10 +10,6 @@ import {
 import { createClient } from "@/lib/supabase/server"
 
 const SECTIONS: Record<string, { title: string; description: string }> = {
-  general: {
-    title: "General",
-    description: "Name, identifier, timezone, estimates, and other settings.",
-  },
   members: {
     title: "Members",
     description: "Manage and invite team members.",
