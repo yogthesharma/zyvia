@@ -5,6 +5,7 @@ import {
   onboardingPath,
   requireProfile,
 } from "@/lib/auth/session"
+import { getWorkspaceHomePath } from "@/lib/preferences/queries"
 
 export default async function WorkspaceIndexPage({
   params,
@@ -18,7 +19,7 @@ export default async function WorkspaceIndexPage({
   }
   const workspace = await getPrimaryWorkspace(profile.id)
   if (workspace && workspace.slug !== slug) {
-    redirect(`/w/${workspace.slug}/issues`)
+    redirect(await getWorkspaceHomePath(profile.id, workspace.slug))
   }
-  redirect(`/w/${slug}/issues`)
+  redirect(await getWorkspaceHomePath(profile.id, slug))
 }

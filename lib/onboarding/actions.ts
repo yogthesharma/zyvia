@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 
 import { getPrimaryWorkspace, requireProfile } from "@/lib/auth/session"
+import { workspaceHomePath } from "@/lib/preferences/queries"
 import { slugify, teamKeyFromName } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
 import type { OnboardingStep } from "@/lib/types"
@@ -222,5 +223,5 @@ export async function saveInvites(
     return { error: e instanceof Error ? e.message : "Could not finish onboarding." }
   }
 
-  redirect(`/w/${workspace.slug}/issues`)
+  redirect(workspaceHomePath(workspace.slug, "issues"))
 }

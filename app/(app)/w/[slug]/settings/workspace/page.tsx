@@ -1,7 +1,11 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { Separator } from "@/components/ui/separator"
+import {
+  SettingsPage,
+  SettingsRow,
+  SettingsSection,
+} from "@/components/app/settings-page"
 import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = { title: "Workspace" }
@@ -22,22 +26,25 @@ export default async function WorkspaceSettingsPage({
   if (!workspace) notFound()
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-8 py-8">
-      <h1 className="text-xl font-semibold tracking-tight">Workspace</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        General workspace settings.
-      </p>
-      <Separator className="my-6" />
-      <div className="space-y-4 text-sm">
-        <div>
-          <p className="text-muted-foreground">Name</p>
-          <p className="font-medium">{workspace.name}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Slug</p>
-          <p className="font-mono font-medium">{workspace.slug}</p>
-        </div>
-      </div>
-    </div>
+    <SettingsPage
+      title="Workspace"
+      description="General workspace settings."
+      width="narrow"
+    >
+      <SettingsSection title="Details">
+        <SettingsRow
+          label="Name"
+          description="Displayed across the workspace."
+          control={<p className="text-sm font-medium">{workspace.name}</p>}
+        />
+        <SettingsRow
+          label="Slug"
+          description="Used in workspace URLs."
+          control={
+            <p className="font-mono text-sm font-medium">{workspace.slug}</p>
+          }
+        />
+      </SettingsSection>
+    </SettingsPage>
   )
 }

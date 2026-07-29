@@ -128,4 +128,20 @@
     @apply font-sans;
     font-size: 14px;
     }
+  html[data-font-size="small"] {
+    font-size: 13px;
+    }
+  html[data-font-size="default"] {
+    font-size: 14px;
+    }
+  html[data-font-size="large"] {
+    font-size: 15px;
+    }
+  html[data-pointer-cursors="true"] :is(a, button, [role="button"], summary, label[for], input[type="checkbox"], input[type="radio"], select) {
+    cursor: pointer;
+    }
+  html[data-underline-links="true"] a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    }
 }

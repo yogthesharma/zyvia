@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
 
 import { WorkspaceChrome } from "@/components/app/workspace-chrome"
+import { PreferencesProvider } from "@/components/preferences-provider"
 import { requireCompletedOnboarding } from "@/lib/auth/session"
+import { getUserPreferences } from "@/lib/preferences/queries"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function WorkspaceLayout({
@@ -38,17 +40,21 @@ export default async function WorkspaceLayout({
     .eq("workspace_id", workspace.id)
     .order("name")
 
+  const preferences = await getUserPreferences(user.id, profile.theme)
+
   return (
-    <WorkspaceChrome
-      workspace={{
-        id: workspace.id,
-        name: workspace.name,
-        slug: workspace.slug,
-      }}
-      teams={teams ?? []}
-      user={{ email: user.email, fullName: profile.full_name }}
-    >
-      {children}
-    </WorkspaceChrome>
+    <PreferencesProvider initialPreferences={preferences}>
+      <WorkspaceChrome
+        workspace={{
+          id: workspace.id,
+          name: workspace.name,
+          slug: workspace.slug,
+        }}
+        teams={teams ?? []}
+        user={{ email: user.email, fullName: profile.full_name }}
+      >
+        {children}
+      </WorkspaceChrome>
+    </PreferencesProvider>
   )
 }

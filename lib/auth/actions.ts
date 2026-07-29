@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import { getPrimaryWorkspace, onboardingPath } from "@/lib/auth/session"
+import { getWorkspaceHomePath } from "@/lib/preferences/queries"
 import { safeInternalPath } from "@/lib/validation"
 
 export type AuthState = {
@@ -81,7 +82,8 @@ export async function signIn(
   }
 
   const workspace = await getPrimaryWorkspace(data.user.id)
-  redirect(workspace ? `/w/${workspace.slug}/issues` : "/onboarding/workspace")
+  if (!workspace) redirect("/onboarding/workspace")
+  redirect(await getWorkspaceHomePath(data.user.id, workspace.slug))
 }
 
 export async function signOut() {

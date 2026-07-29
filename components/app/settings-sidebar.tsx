@@ -10,7 +10,6 @@ import {
   CubeIcon,
   GearSixIcon,
   HandshakeIcon,
-  MagnifyingGlassIcon,
   PlugsIcon,
   PulseIcon,
   RobotIcon,
@@ -25,7 +24,6 @@ import {
 } from "@phosphor-icons/react"
 
 import type { ShellWorkspace } from "@/components/app/types"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
@@ -137,7 +135,7 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
 
   return (
     <aside className="flex h-svh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <div className="space-y-3 border-b border-sidebar-border/60 p-3">
+      <div className="p-3">
         <Link
           href={`/w/${workspace.slug}/issues`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -145,14 +143,6 @@ export function SettingsSidebar({ workspace }: { workspace: ShellWorkspace }) {
           <ArrowLeftIcon className="size-3.5" />
           Back to app
         </Link>
-        <div className="relative">
-          <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search…"
-            className="h-8 bg-background/40 pl-8"
-            disabled
-          />
-        </div>
       </div>
 
       <ScrollArea className="flex-1">

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
+import { isDefaultHomeView } from "@/lib/preferences/schema"
 import { getSupabaseEnv } from "@/lib/supabase/env"
 import { safeInternalPath } from "@/lib/validation"
 
@@ -73,7 +74,17 @@ export async function updateSession(request: NextRequest) {
           .maybeSingle()
 
         if (workspace?.slug) {
-          redirectUrl.pathname = `/w/${workspace.slug}/issues`
+          const { data: prefs } = await supabase
+            .from("user_preferences")
+            .select("default_home_view")
+            .eq("user_id", userId)
+            .maybeSingle()
+
+          const homeView = isDefaultHomeView(prefs?.default_home_view)
+            ? prefs.default_home_view
+            : "issues"
+
+          redirectUrl.pathname = `/w/${workspace.slug}/${homeView}`
           redirectUrl.search = ""
           return NextResponse.redirect(redirectUrl)
         }

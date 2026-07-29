@@ -1,20 +1,30 @@
-import { Separator } from "@/components/ui/separator"
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/app/settings-page"
 
 export function ComingSoonPage({
   title,
   description,
+  width = "narrow",
 }: {
   title: string
   description?: string
+  width?: "narrow" | "full"
 }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-8 py-8">
-      <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {description ?? "This section is stubbed to match Linear’s navigation."}
-      </p>
-      <Separator className="my-6" />
-      <p className="text-sm text-muted-foreground">Coming soon.</p>
-    </div>
+    <SettingsPage
+      title={title}
+      description={
+        description ?? "This section is stubbed to match Linear’s navigation."
+      }
+      width={width}
+    >
+      <SettingsSection title="Status">
+        <p className="px-4 py-3.5 text-sm text-muted-foreground">
+          Coming soon.
+        </p>
+      </SettingsSection>
+    </SettingsPage>
   )
 }
