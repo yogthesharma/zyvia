@@ -43,11 +43,11 @@ import {
 } from "@/lib/workspace/actions"
 import {
   normalizeWorkspaceName,
-  normalizeWorkspaceSlug,
+  resolveWorkspaceSlugInput,
+  sanitizeSlugInput,
 } from "@/lib/workspace/schema"
 import type { WorkspaceSettings } from "@/lib/workspace/types"
 import { cn } from "@/lib/utils"
-import { slugify } from "@/lib/slug"
 
 const TOAST_ID = "workspace-settings"
 
@@ -80,70 +80,124 @@ export function WorkspaceForm({
     () => new Set()
   )
   const workspaceRef = React.useRef(workspace)
+  const apiSlugRef = React.useRef(initialWorkspace.slug)
+  const pendingKeysRef = React.useRef(pendingKeys)
   const requestIdsRef = React.useRef<Record<string, number>>({})
 
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [confirmName, setConfirmName] = React.useState("")
 
   React.useEffect(() => {
+    // Don't clobber in-flight edits when a refresh returns.
+    if (pendingKeysRef.current.size > 0) return
     setWorkspace(initialWorkspace)
     setName(initialWorkspace.name)
     setSlug(initialWorkspace.slug)
+    apiSlugRef.current = initialWorkspace.slug
+    workspaceRef.current = initialWorkspace
   }, [initialWorkspace])
 
   React.useEffect(() => {
     workspaceRef.current = workspace
   }, [workspace])
 
+  React.useEffect(() => {
+    pendingKeysRef.current = pendingKeys
+  }, [pendingKeys])
+
   function setKeyPending(key: string, pending: boolean) {
     setPendingKeys((prev) => {
       const next = new Set(prev)
       if (pending) next.add(key)
       else next.delete(key)
+      pendingKeysRef.current = next
       return next
     })
   }
 
   const isPending = (key: string) => pendingKeys.has(key)
   const readOnly = !workspace.canEdit
+  const deletionLocked = Boolean(workspace.deletionScheduledAt)
+
+  function applyWorkspace(next: WorkspaceSettings, opts?: { forceInputs?: boolean }) {
+    workspaceRef.current = next
+    setWorkspace(next)
+    apiSlugRef.current = next.slug
+
+    const force = opts?.forceInputs ?? false
+    if (force || !pendingKeysRef.current.has("name")) {
+      setName(next.name)
+    }
+    if (force || !pendingKeysRef.current.has("slug")) {
+      setSlug(next.slug)
+    }
+  }
 
   async function commitField(
     key: "name" | "slug" | "fiscalYearStartMonth",
     rawValue: string | number
   ) {
     if (readOnly) {
-      toast.error("Only owners and admins can edit workspace settings.", {
-        id: TOAST_ID,
-      })
+      toast.error(
+        deletionLocked
+          ? "Cancel deletion before editing workspace settings."
+          : "Only owners and admins can edit workspace settings.",
+        { id: TOAST_ID }
+      )
       return
     }
 
-    let nextValue: string | number = rawValue
-    if (key === "name" && typeof rawValue === "string") {
+    let nextValue: string | number
+
+    if (key === "name") {
+      if (typeof rawValue !== "string") return
       nextValue = normalizeWorkspaceName(rawValue)
+      if (!nextValue) {
+        setName(workspaceRef.current.name)
+        toast.error("Workspace name is required.", { id: TOAST_ID })
+        return
+      }
+      if (nextValue.length > 80) {
+        setName(workspaceRef.current.name)
+        toast.error("Workspace name is too long.", { id: TOAST_ID })
+        return
+      }
       setName(nextValue)
-    }
-    if (key === "slug" && typeof rawValue === "string") {
-      nextValue = normalizeWorkspaceSlug(rawValue || slugify(name))
-      setSlug(String(nextValue))
+    } else if (key === "slug") {
+      if (typeof rawValue !== "string") return
+      const resolved = resolveWorkspaceSlugInput(
+        rawValue,
+        workspaceRef.current.name
+      )
+      if (resolved.error || !resolved.slug) {
+        setSlug(workspaceRef.current.slug)
+        toast.error(
+          resolved.error ?? "That workspace URL is invalid.",
+          { id: TOAST_ID }
+        )
+        return
+      }
+      nextValue = resolved.slug
+      setSlug(resolved.slug)
+    } else {
+      nextValue = Number(rawValue)
     }
 
-    const current = workspaceRef.current[key]
-    if (nextValue === current) {
-      if (key === "name") setName(String(current))
-      if (key === "slug") setSlug(String(current))
+    if (nextValue === workspaceRef.current[key]) {
+      if (key === "name") setName(workspaceRef.current.name)
+      if (key === "slug") setSlug(workspaceRef.current.slug)
       return
     }
 
-    const requestSlug = workspaceRef.current.slug
+    const requestSlug = apiSlugRef.current
+    const previousValue = workspaceRef.current[key]
     const requestId = (requestIdsRef.current[key] ?? 0) + 1
     requestIdsRef.current[key] = requestId
     setKeyPending(key, true)
 
-    const previous = workspaceRef.current
-    const optimistic = { ...previous, [key]: nextValue }
-    workspaceRef.current = optimistic
-    setWorkspace(optimistic)
+    // Optimistic UI for the changed field only.
+    workspaceRef.current = { ...workspaceRef.current, [key]: nextValue }
+    setWorkspace(workspaceRef.current)
 
     try {
       const result = await updateWorkspaceSettings(requestSlug, {
@@ -153,19 +207,19 @@ export function WorkspaceForm({
       if (requestIdsRef.current[key] !== requestId) return
 
       if (result.error) {
-        workspaceRef.current = previous
-        setWorkspace(previous)
-        if (key === "name") setName(previous.name)
-        if (key === "slug") setSlug(previous.slug)
+        workspaceRef.current = {
+          ...workspaceRef.current,
+          [key]: previousValue,
+        }
+        setWorkspace(workspaceRef.current)
+        if (key === "name") setName(String(previousValue))
+        if (key === "slug") setSlug(String(previousValue))
         toast.error(result.error, { id: TOAST_ID })
         return
       }
 
       if (result.workspace) {
-        workspaceRef.current = result.workspace
-        setWorkspace(result.workspace)
-        setName(result.workspace.name)
-        setSlug(result.workspace.slug)
+        applyWorkspace(result.workspace, { forceInputs: key === "name" || key === "slug" })
       }
 
       toast.success("Workspace settings saved", { id: TOAST_ID })
@@ -178,10 +232,13 @@ export function WorkspaceForm({
       }
     } catch (error) {
       if (requestIdsRef.current[key] !== requestId) return
-      workspaceRef.current = previous
-      setWorkspace(previous)
-      if (key === "name") setName(previous.name)
-      if (key === "slug") setSlug(previous.slug)
+      workspaceRef.current = {
+        ...workspaceRef.current,
+        [key]: previousValue,
+      }
+      setWorkspace(workspaceRef.current)
+      if (key === "name") setName(String(previousValue))
+      if (key === "slug") setSlug(String(previousValue))
       toast.error(
         error instanceof Error
           ? error.message
@@ -198,9 +255,12 @@ export function WorkspaceForm({
   async function onLogoSelected(file: File | null) {
     if (!file) return
     if (readOnly) {
-      toast.error("Only owners and admins can edit workspace settings.", {
-        id: TOAST_ID,
-      })
+      toast.error(
+        deletionLocked
+          ? "Cancel deletion before editing workspace settings."
+          : "Only owners and admins can edit workspace settings.",
+        { id: TOAST_ID }
+      )
       return
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -212,15 +272,12 @@ export function WorkspaceForm({
     try {
       const body = new FormData()
       body.set("logo", file)
-      const result = await uploadWorkspaceLogo(workspaceRef.current.slug, body)
+      const result = await uploadWorkspaceLogo(apiSlugRef.current, body)
       if (result.error) {
         toast.error(result.error, { id: TOAST_ID })
         return
       }
-      if (result.workspace) {
-        workspaceRef.current = result.workspace
-        setWorkspace(result.workspace)
-      }
+      if (result.workspace) applyWorkspace(result.workspace)
       toast.success("Logo updated", { id: TOAST_ID })
       router.refresh()
     } catch (error) {
@@ -237,15 +294,12 @@ export function WorkspaceForm({
     if (readOnly) return
     setKeyPending("logo", true)
     try {
-      const result = await removeWorkspaceLogo(workspaceRef.current.slug)
+      const result = await removeWorkspaceLogo(apiSlugRef.current)
       if (result.error) {
         toast.error(result.error, { id: TOAST_ID })
         return
       }
-      if (result.workspace) {
-        workspaceRef.current = result.workspace
-        setWorkspace(result.workspace)
-      }
+      if (result.workspace) applyWorkspace(result.workspace)
       toast.success("Logo removed", { id: TOAST_ID })
       router.refresh()
     } catch (error) {
@@ -259,20 +313,18 @@ export function WorkspaceForm({
   }
 
   async function onScheduleDeletion() {
+    if (!workspace.canDelete) return
     setKeyPending("delete", true)
     try {
       const result = await scheduleWorkspaceDeletion(
-        workspaceRef.current.slug,
+        apiSlugRef.current,
         confirmName
       )
       if (result.error) {
         toast.error(result.error, { id: TOAST_ID })
         return
       }
-      if (result.workspace) {
-        workspaceRef.current = result.workspace
-        setWorkspace(result.workspace)
-      }
+      if (result.workspace) applyWorkspace(result.workspace, { forceInputs: true })
       setDeleteOpen(false)
       setConfirmName("")
       toast.success("Workspace scheduled for deletion", { id: TOAST_ID })
@@ -290,17 +342,15 @@ export function WorkspaceForm({
   }
 
   async function onCancelDeletion() {
+    if (!workspace.canDelete) return
     setKeyPending("delete", true)
     try {
-      const result = await cancelWorkspaceDeletion(workspaceRef.current.slug)
+      const result = await cancelWorkspaceDeletion(apiSlugRef.current)
       if (result.error) {
         toast.error(result.error, { id: TOAST_ID })
         return
       }
-      if (result.workspace) {
-        workspaceRef.current = result.workspace
-        setWorkspace(result.workspace)
-      }
+      if (result.workspace) applyWorkspace(result.workspace, { forceInputs: true })
       toast.success("Workspace deletion canceled", { id: TOAST_ID })
       router.refresh()
     } catch (error) {
@@ -318,6 +368,13 @@ export function WorkspaceForm({
   return (
     <>
       <SettingsPage title="Workspace" width="narrow">
+        {deletionLocked ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            This workspace is scheduled for deletion. Editing is locked until
+            you cancel deletion.
+          </div>
+        ) : null}
+
         <SettingsSection>
           <SettingsRow
             label="Logo"
@@ -351,13 +408,14 @@ export function WorkspaceForm({
                           />
                         ) : null}
                         <AvatarFallback className="bg-violet-600 text-sm font-semibold text-white">
-                          {workspace.name.slice(0, 1).toUpperCase()}
+                          {(workspace.name.trim()[0] ?? "?").toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
+                      disabled={readOnly}
                       onSelect={() => fileInputRef.current?.click()}
                     >
                       <PencilSimpleIcon />
@@ -366,6 +424,7 @@ export function WorkspaceForm({
                     {workspace.logoUrl ? (
                       <DropdownMenuItem
                         variant="destructive"
+                        disabled={readOnly}
                         onSelect={() => void onRemoveLogo()}
                       >
                         <TrashIcon />
@@ -393,6 +452,7 @@ export function WorkspaceForm({
                 }}
                 className="w-56"
                 aria-label="Workspace name"
+                maxLength={80}
               />
             }
           />
@@ -400,7 +460,12 @@ export function WorkspaceForm({
           <SettingsRow
             label="URL"
             control={
-              <div className="flex w-72 items-center overflow-hidden rounded-lg border border-input dark:bg-input/30">
+              <div
+                className={cn(
+                  "flex w-72 items-center overflow-hidden rounded-lg border border-input dark:bg-input/30",
+                  (readOnly || isPending("slug")) && "opacity-50"
+                )}
+              >
                 <span className="shrink-0 border-r border-input bg-muted/40 px-2.5 py-1.5 text-sm text-muted-foreground">
                   {workspace.urlPrefix}
                 </span>
@@ -408,7 +473,7 @@ export function WorkspaceForm({
                   value={slug}
                   disabled={readOnly || isPending("slug")}
                   onChange={(event) =>
-                    setSlug(event.target.value.toLowerCase())
+                    setSlug(sanitizeSlugInput(event.target.value))
                   }
                   onBlur={() => void commitField("slug", slug)}
                   onKeyDown={(event) => {
@@ -418,6 +483,10 @@ export function WorkspaceForm({
                   }}
                   className="border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent"
                   aria-label="Workspace URL"
+                  maxLength={48}
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  autoCorrect="off"
                 />
               </div>
             }
@@ -531,7 +600,8 @@ export function WorkspaceForm({
             <DialogTitle>Delete workspace</DialogTitle>
             <DialogDescription>
               This schedules <strong>{workspace.name}</strong> for permanent
-              deletion. Type the workspace name to confirm.
+              deletion. Editing will be locked until you cancel. Type the
+              workspace name to confirm.
             </DialogDescription>
           </DialogHeader>
           <Input
@@ -540,6 +610,15 @@ export function WorkspaceForm({
             placeholder={workspace.name}
             aria-label="Confirm workspace name"
             autoFocus
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                normalizeWorkspaceName(confirmName) === workspace.name &&
+                !isPending("delete")
+              ) {
+                void onScheduleDeletion()
+              }
+            }}
           />
           <DialogFooter>
             <Button

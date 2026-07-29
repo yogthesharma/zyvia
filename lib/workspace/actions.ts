@@ -9,6 +9,7 @@ import {
 import { getWorkspaceSettings } from "@/lib/workspace/queries"
 import type {
   WorkspaceActionResult,
+  WorkspaceSettings,
   WorkspaceSettingsUpdate,
 } from "@/lib/workspace/types"
 
@@ -20,6 +21,14 @@ const ALLOWED_LOGO_TYPES = new Set([
   "image/webp",
   "image/gif",
 ])
+
+const EXT_TO_MIME: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+}
 
 async function requireAuthedUser(): Promise<
   | { error: string; user?: undefined }
@@ -38,6 +47,12 @@ async function requireAuthedUser(): Promise<
 async function requireWorkspaceEditor(slug: string, userId: string) {
   const workspace = await getWorkspaceSettings(slug, userId)
   if (!workspace) return { error: "Workspace not found." } as const
+  if (workspace.deletionScheduledAt) {
+    return {
+      error:
+        "This workspace is scheduled for deletion. Cancel deletion before editing.",
+    } as const
+  }
   if (!workspace.canEdit) {
     return {
       error: "Only workspace owners and admins can change these settings.",
@@ -60,11 +75,39 @@ async function clearLogoFolder(workspaceId: string, keepPath?: string) {
   }
 }
 
+function logoTypeFromFile(file: File): { mime?: string; ext?: string; error?: string } {
+  let mime = file.type
+  if (!mime || mime === "application/octet-stream") {
+    const match = /\.([a-z0-9]+)$/i.exec(file.name)
+    const ext = match?.[1]?.toLowerCase()
+    if (ext && EXT_TO_MIME[ext]) {
+      mime = EXT_TO_MIME[ext]
+    }
+  }
+
+  if (!mime || !ALLOWED_LOGO_TYPES.has(mime)) {
+    return { error: "Use a JPEG, PNG, WebP, or GIF image." }
+  }
+
+  const ext =
+    mime === "image/png"
+      ? "png"
+      : mime === "image/webp"
+        ? "webp"
+        : mime === "image/gif"
+          ? "gif"
+          : "jpg"
+
+  return { mime, ext }
+}
+
 export async function updateWorkspaceSettings(
   slug: string,
   input: WorkspaceSettingsUpdate
 ): Promise<WorkspaceActionResult> {
   try {
+    if (!isValidWorkspaceSlug(slug)) return { error: "Invalid workspace." }
+
     const auth = await requireAuthedUser()
     if (auth.error || !auth.user) return { error: auth.error }
 
@@ -77,10 +120,29 @@ export async function updateWorkspaceSettings(
     }
 
     const patch: Record<string, unknown> = {}
-    if (parsed.data.name !== undefined) patch.name = parsed.data.name
-    if (parsed.data.slug !== undefined) patch.slug = parsed.data.slug
+    if (parsed.data.name !== undefined) {
+      if (parsed.data.name === access.workspace.name) {
+        // no-op for this field
+      } else {
+        patch.name = parsed.data.name
+      }
+    }
+    if (parsed.data.slug !== undefined) {
+      if (parsed.data.slug !== access.workspace.slug) {
+        patch.slug = parsed.data.slug
+      }
+    }
     if (parsed.data.fiscalYearStartMonth !== undefined) {
-      patch.fiscal_year_start_month = parsed.data.fiscalYearStartMonth
+      if (
+        parsed.data.fiscalYearStartMonth !==
+        access.workspace.fiscalYearStartMonth
+      ) {
+        patch.fiscal_year_start_month = parsed.data.fiscalYearStartMonth
+      }
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return { workspace: access.workspace }
     }
 
     const supabase = await createClient()
@@ -99,13 +161,14 @@ export async function updateWorkspaceSettings(
       return { error: error.message }
     }
 
-    const nextSlug = parsed.data.slug ?? access.workspace.slug
+    const nextSlug =
+      typeof patch.slug === "string" ? patch.slug : access.workspace.slug
     const workspace = await getWorkspaceSettings(nextSlug, auth.user.id)
     if (!workspace) return { error: "Workspace not found after save." }
 
     const result: WorkspaceActionResult = { workspace }
-    if (parsed.data.slug && parsed.data.slug !== slug) {
-      result.redirectTo = `/w/${parsed.data.slug}/settings/workspace`
+    if (typeof patch.slug === "string" && patch.slug !== slug) {
+      result.redirectTo = `/w/${patch.slug}/settings/workspace`
     }
     return result
   } catch (error) {
@@ -123,6 +186,8 @@ export async function uploadWorkspaceLogo(
   formData: FormData
 ): Promise<WorkspaceActionResult> {
   try {
+    if (!isValidWorkspaceSlug(slug)) return { error: "Invalid workspace." }
+
     const auth = await requireAuthedUser()
     if (auth.error || !auth.user) return { error: auth.error }
 
@@ -136,20 +201,13 @@ export async function uploadWorkspaceLogo(
     if (file.size > MAX_LOGO_BYTES) {
       return { error: "Logo must be 2MB or smaller." }
     }
-    if (!ALLOWED_LOGO_TYPES.has(file.type)) {
-      return { error: "Use a JPEG, PNG, WebP, or GIF image." }
+
+    const typed = logoTypeFromFile(file)
+    if (typed.error || !typed.mime || !typed.ext) {
+      return { error: typed.error ?? "Use a JPEG, PNG, WebP, or GIF image." }
     }
 
-    const ext =
-      file.type === "image/png"
-        ? "png"
-        : file.type === "image/webp"
-          ? "webp"
-          : file.type === "image/gif"
-            ? "gif"
-            : "jpg"
-
-    const path = `${access.workspace.id}/logo.${ext}`
+    const path = `${access.workspace.id}/logo.${typed.ext}`
     const supabase = await createClient()
 
     await clearLogoFolder(access.workspace.id, path)
@@ -158,7 +216,7 @@ export async function uploadWorkspaceLogo(
       .from(LOGO_BUCKET)
       .upload(path, file, {
         upsert: true,
-        contentType: file.type,
+        contentType: typed.mime,
         cacheControl: "3600",
       })
 
@@ -172,7 +230,11 @@ export async function uploadWorkspaceLogo(
       .update({ logo_url: logoUrl })
       .eq("id", access.workspace.id)
 
-    if (error) return { error: error.message }
+    if (error) {
+      // Best-effort cleanup so a failed DB write doesn't leave orphans.
+      await supabase.storage.from(LOGO_BUCKET).remove([path])
+      return { error: error.message }
+    }
 
     const workspace = await getWorkspaceSettings(slug, auth.user.id)
     if (!workspace) return { error: "Workspace not found after upload." }
@@ -189,11 +251,17 @@ export async function removeWorkspaceLogo(
   slug: string
 ): Promise<WorkspaceActionResult> {
   try {
+    if (!isValidWorkspaceSlug(slug)) return { error: "Invalid workspace." }
+
     const auth = await requireAuthedUser()
     if (auth.error || !auth.user) return { error: auth.error }
 
     const access = await requireWorkspaceEditor(slug, auth.user.id)
     if ("error" in access) return { error: access.error }
+
+    if (!access.workspace.logoUrl) {
+      return { workspace: access.workspace }
+    }
 
     const supabase = await createClient()
     await clearLogoFolder(access.workspace.id)
@@ -232,21 +300,29 @@ export async function scheduleWorkspaceDeletion(
       return { error: "Only the workspace owner can delete this workspace." }
     }
 
+    if (workspace.deletionScheduledAt) {
+      return { workspace }
+    }
+
     const confirmed = normalizeWorkspaceName(confirmName)
-    if (confirmed !== workspace.name) {
+    if (!confirmed || confirmed !== workspace.name) {
       return { error: "Type the workspace name exactly to confirm deletion." }
     }
 
     const supabase = await createClient()
+    const scheduledAt = new Date().toISOString()
     const { error } = await supabase
       .from("workspaces")
-      .update({ deletion_scheduled_at: new Date().toISOString() })
+      .update({ deletion_scheduled_at: scheduledAt })
       .eq("id", workspace.id)
 
     if (error) return { error: error.message }
 
-    const next = await getWorkspaceSettings(slug, auth.user.id)
-    if (!next) return { error: "Workspace not found after scheduling." }
+    const next: WorkspaceSettings = {
+      ...workspace,
+      deletionScheduledAt: scheduledAt,
+      canEdit: false,
+    }
     return { workspace: next }
   } catch (error) {
     return {
@@ -265,10 +341,16 @@ export async function cancelWorkspaceDeletion(
     const auth = await requireAuthedUser()
     if (auth.error || !auth.user) return { error: auth.error }
 
+    if (!isValidWorkspaceSlug(slug)) return { error: "Invalid workspace." }
+
     const workspace = await getWorkspaceSettings(slug, auth.user.id)
     if (!workspace) return { error: "Workspace not found." }
     if (!workspace.canDelete) {
       return { error: "Only the workspace owner can manage deletion." }
+    }
+
+    if (!workspace.deletionScheduledAt) {
+      return { workspace }
     }
 
     const supabase = await createClient()
@@ -309,7 +391,7 @@ export async function permanentlyDeleteWorkspace(
     }
 
     const confirmed = normalizeWorkspaceName(confirmName)
-    if (confirmed !== workspace.name) {
+    if (!confirmed || confirmed !== workspace.name) {
       return { error: "Type the workspace name exactly to confirm deletion." }
     }
 
@@ -323,7 +405,6 @@ export async function permanentlyDeleteWorkspace(
 
     if (error) return { error: error.message }
 
-    // Prefer another membership; otherwise restart onboarding.
     const { data: nextMembership } = await supabase
       .from("workspace_members")
       .select("workspace_id")
@@ -365,4 +446,3 @@ export async function permanentlyDeleteWorkspace(
     }
   }
 }
-

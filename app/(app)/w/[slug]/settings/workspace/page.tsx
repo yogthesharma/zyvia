@@ -14,7 +14,13 @@ export default async function WorkspaceSettingsPage({
 }) {
   const { slug } = await params
   const { user } = await requireCompletedOnboarding()
-  const workspace = await getWorkspaceSettings(slug, user.id)
+
+  let workspace
+  try {
+    workspace = await getWorkspaceSettings(slug, user.id)
+  } catch {
+    notFound()
+  }
 
   if (!workspace) notFound()
 

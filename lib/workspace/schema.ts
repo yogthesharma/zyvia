@@ -1,4 +1,5 @@
 import { isValidWorkspaceSlug } from "@/lib/profile/schema"
+import { slugify } from "@/lib/slug"
 import type { WorkspaceSettingsUpdate } from "@/lib/workspace/types"
 
 const MONTHS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
@@ -7,8 +8,31 @@ export function normalizeWorkspaceName(value: string) {
   return value.trim().replace(/\s+/g, " ")
 }
 
-export function normalizeWorkspaceSlug(value: string) {
-  return value.trim().toLowerCase()
+/** Keep only slug-safe characters while the user types. */
+export function sanitizeSlugInput(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, "")
+}
+
+/**
+ * Turn a raw URL field into a valid slug, falling back to the workspace name.
+ */
+export function resolveWorkspaceSlugInput(
+  rawSlug: string,
+  fallbackName: string
+): { slug?: string; error?: string } {
+  let slug = slugify(rawSlug)
+  if (!slug) slug = slugify(fallbackName)
+
+  if (!slug) {
+    return { error: "Workspace URL is required." }
+  }
+  if (!isValidWorkspaceSlug(slug)) {
+    return {
+      error:
+        "URL must be 2–48 characters: lowercase letters, numbers, and hyphens.",
+    }
+  }
+  return { slug }
 }
 
 export function parseWorkspaceUpdate(
@@ -31,14 +55,15 @@ export function parseWorkspaceUpdate(
 
   if ("slug" in raw) {
     if (typeof raw.slug !== "string") return { error: "Invalid URL." }
-    const slug = normalizeWorkspaceSlug(raw.slug)
-    if (!isValidWorkspaceSlug(slug)) {
+    const resolved = resolveWorkspaceSlugInput(raw.slug, "")
+    if (resolved.error || !resolved.slug) {
       return {
         error:
+          resolved.error ??
           "URL must be 2–48 characters: lowercase letters, numbers, and hyphens.",
       }
     }
-    data.slug = slug
+    data.slug = resolved.slug
   }
 
   if ("fiscalYearStartMonth" in raw) {

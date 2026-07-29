@@ -1,3 +1,4 @@
+import { isValidWorkspaceSlug } from "@/lib/profile/schema"
 import { siteConfig } from "@/lib/site"
 import { createClient } from "@/lib/supabase/server"
 import type {
@@ -18,6 +19,8 @@ export async function getWorkspaceSettings(
   slug: string,
   userId: string
 ): Promise<WorkspaceSettings | null> {
+  if (!isValidWorkspaceSlug(slug)) return null
+
   const supabase = await createClient()
 
   const { data: workspace, error } = await supabase
@@ -42,7 +45,9 @@ export async function getWorkspaceSettings(
   if (!membership) return null
 
   const role = membership.role as WorkspaceRole
-  const canEdit = role === "owner" || role === "admin"
+  const deletionLocked = Boolean(workspace.deletion_scheduled_at)
+  const canEdit =
+    (role === "owner" || role === "admin") && !deletionLocked
   const canDelete = role === "owner"
 
   return {
