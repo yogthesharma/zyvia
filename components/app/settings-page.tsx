@@ -25,7 +25,7 @@ export function SettingsPage({
   return (
     <div
       className={cn(
-        "mx-auto w-full px-8 py-8",
+        "mx-auto w-full px-8 pt-12 pb-8",
         width === "narrow" ? "max-w-3xl" : "max-w-none",
         className
       )}

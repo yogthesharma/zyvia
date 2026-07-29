@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { ComingSoonPage } from "@/components/app/coming-soon"
+import { ConnectedAccounts } from "@/components/settings/connected-accounts"
 
 export const metadata: Metadata = { title: "Connected accounts" }
 
 export default function Page() {
-  return <ComingSoonPage title="Connected accounts" />
+  return <ConnectedAccounts />
 }
