@@ -33,9 +33,9 @@ type DataTableProps<TData, TValue> = {
   data: TData[]
   emptyMessage?: string
   className?: string
-  /** Soft bordered surface (default) or borderless settings-style list. */
+  /** Soft tinted surface (default) or fully plain list. */
   variant?: "surface" | "plain"
-  /** Optional sticky group label above the body rows. */
+  /** Optional group label above the body rows. */
   groupLabel?: string
   getRowHref?: (row: Row<TData>) => string | undefined
   onRowClick?: (row: Row<TData>) => void
@@ -112,20 +112,22 @@ export function DataTable<TData, TValue>({
     <div
       className={cn(
         "w-full min-w-0",
-        variant === "surface" &&
-          "overflow-hidden rounded-lg border border-border bg-card/40",
+        variant === "surface" && "overflow-hidden rounded-lg bg-muted/20",
         className
       )}
     >
       {groupLabel ? (
-        <div className="border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground">
+        <div className="bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground">
           {groupLabel}
         </div>
       ) : null}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+            <TableRow
+              key={headerGroup.id}
+              className="bg-muted/30 hover:bg-muted/30"
+            >
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
@@ -201,7 +203,7 @@ export function DataTable<TData, TValue>({
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        "px-3 py-2.5",
+                        "px-3 py-3.5",
                         metaClassName(cell.column.columnDef.meta)
                       )}
                     >

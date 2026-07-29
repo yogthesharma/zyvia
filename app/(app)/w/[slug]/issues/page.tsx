@@ -83,11 +83,11 @@ export default async function IssuesPage({
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul>
           {issues.map((issue) => (
             <li
               key={issue.id}
-              className="flex items-center gap-3 px-6 py-3 text-sm"
+              className="flex items-center gap-3 px-6 py-3 text-sm transition-colors hover:bg-muted/40"
             >
               <span className="w-24 shrink-0 font-mono text-xs text-muted-foreground">
                 {issue.identifier}

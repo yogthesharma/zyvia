@@ -182,7 +182,7 @@ export function SettingsSidebar({
   ]
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="shrink-0 p-3">
         <Link
           href={`${appBase}/issues`}

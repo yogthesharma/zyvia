@@ -96,7 +96,7 @@ function DangerRow({
   action: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between gap-6 px-4 py-3.5">
+    <div className="flex items-center justify-between gap-6 px-4 py-3.5 transition-colors hover:bg-muted/40">
       <div className="min-w-0 space-y-0.5">
         <p className="text-sm font-medium">{label}</p>
         <p className="text-sm leading-snug text-muted-foreground">
@@ -358,7 +358,7 @@ export function TeamSettingsHub({
             </SettingsSection>
 
             <SettingsSection title="Team hierarchy">
-              <div className="border-b border-border px-4 py-3.5">
+              <div className="bg-muted/30 px-4 py-3.5">
                 <p className="text-sm leading-snug text-muted-foreground">
                   Teams can be nested to reflect your team structure and to share
                   workflows and settings.

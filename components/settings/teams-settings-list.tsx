@@ -143,13 +143,6 @@ export function TeamsSettingsList({
           ? "No deleted teams match that filter."
           : "No recently deleted teams."
 
-  const groupLabel =
-    status === "active"
-      ? `Active ${filtered.length}`
-      : status === "retired"
-        ? `Retired ${filtered.length}`
-        : `Recently deleted ${filtered.length}`
-
   return (
     <div className="flex w-full min-w-0 flex-col px-8 pt-12 pb-8">
       <header className="mb-6">
@@ -207,7 +200,6 @@ export function TeamsSettingsList({
         columns={columns}
         data={filtered}
         emptyMessage={emptyMessage}
-        groupLabel={groupLabel}
         initialSorting={[{ id: "name", desc: false }]}
         getRowHref={(row) =>
           `/w/${workspaceSlug}/settings/teams/${row.original.key.toLowerCase()}`

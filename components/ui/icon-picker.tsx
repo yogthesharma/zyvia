@@ -284,7 +284,7 @@ const IconPicker = React.forwardRef<
       <Tooltip>
         <TooltipTrigger
           className={cn(
-            "p-2 rounded-md border hover:bg-foreground/10 transition",
+            "rounded-md p-2 transition hover:bg-foreground/10",
             "flex items-center justify-center"
           )}
           onClick={() => handleIconClick(icon.name as IconName)}>

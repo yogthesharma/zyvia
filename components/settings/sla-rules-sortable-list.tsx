@@ -108,15 +108,16 @@ function SortableRuleRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative border-b border-border bg-card/40 last:border-b-0",
+        "relative bg-transparent last:border-b-0",
         "transition-[background-color,opacity,box-shadow] duration-150",
+        !isDragging && "hover:bg-muted/40",
         isDragging && "z-20 opacity-40 shadow-none"
       )}
     >
       {isDragging ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-3 inset-y-2 rounded-md border border-dashed border-foreground/25 bg-muted/40"
+          className="pointer-events-none absolute inset-x-3 inset-y-2 rounded-md bg-muted/50"
         />
       ) : null}
       <RuleRowContent
@@ -233,7 +234,7 @@ export function SlaRulesSortableList({
 
   if (!canEdit) {
     return (
-      <ul className="divide-y divide-border">
+      <ul>
         {rules.map((rule, index) => (
           <li key={rule.id}>
             <RuleRowContent
@@ -287,7 +288,7 @@ export function SlaRulesSortableList({
         easing: "cubic-bezier(0.25, 1, 0.5, 1)",
       }}>
         {activeRule ? (
-          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-lg ring-1 ring-foreground/10">
+          <div className="overflow-hidden rounded-lg bg-card shadow-lg">
             <RuleRowContent
               rule={activeRule}
               index={Math.max(activeIndex, 0)}

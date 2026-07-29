@@ -371,7 +371,7 @@ export function WorkspaceForm({
     <>
       <SettingsPage title="Workspace" width="narrow">
         {deletionLocked ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
             This workspace is scheduled for deletion. Editing is locked until
             you cancel deletion.
           </div>
@@ -464,11 +464,11 @@ export function WorkspaceForm({
             control={
               <div
                 className={cn(
-                  "flex w-72 items-center overflow-hidden rounded-lg border border-input dark:bg-input/30",
+                  "flex w-72 items-center overflow-hidden rounded-lg border border-transparent bg-muted/50 dark:bg-input/40",
                   (readOnly || isPending("slug")) && "opacity-50"
                 )}
               >
-                <span className="shrink-0 border-r border-input bg-muted/40 px-2.5 py-1.5 text-sm text-muted-foreground">
+                <span className="shrink-0 bg-muted/70 px-2.5 py-1.5 text-sm text-muted-foreground">
                   {workspace.urlPrefix}
                 </span>
                 <Input

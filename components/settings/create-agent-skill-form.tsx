@@ -125,7 +125,7 @@ export function AgentSkillForm({
           onChange={(event) => setName(event.target.value)}
         />
 
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40">
+        <div className="overflow-hidden rounded-xl bg-muted/20">
           <Textarea
             value={instructions}
             disabled={pending}

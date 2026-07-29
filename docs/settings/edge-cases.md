@@ -74,3 +74,7 @@
 2. Settings top padding is `pt-12` on `SettingsPage` (intentional spacing).
 3. Settings shell: sidebar fixed, **main pane** scrolls (`settings-shell.tsx`).
 4. Settings subpage back links use `SettingsSubpage` / `SettingsBackLink` — sticky `top-4 left-4` in the scrolling main pane (not `absolute` that scrolls away).
+5. **Surface chrome** — settings/list shells use muted fills (no hairline borders). Sidebars keep `border-r` for pane separation; app shell header keeps `border-b` so scrolled content doesn’t collide with chrome.
+6. **Sidebar width** — app and settings sidebars both use **16rem** (`Sidebar` `SIDEBAR_WIDTH` / settings `w-64`). Don’t regress to `w-60`.
+7. **Borderless fields** — `Input`/`Textarea`/`Select` rest on muted fill; focus uses ring + `bg-background` so controls stay visible inside muted `SettingsSection` shells.
+8. **Floating layers** — dialogs/menus/popovers keep soft ring + shadow so they don’t dissolve into the page.

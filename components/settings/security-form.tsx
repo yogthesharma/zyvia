@@ -143,7 +143,7 @@ export function SecurityForm({
         width="narrow"
       >
         <SettingsSection title="Sessions">
-          <div className="space-y-0 divide-y divide-border">
+          <div className="space-y-0">
             <div className="px-4 py-3.5">
               <p className="text-sm text-muted-foreground">
                 Devices logged into your account.
@@ -151,7 +151,7 @@ export function SecurityForm({
             </div>
 
             {current ? (
-              <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+              <div className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40">
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2">
                     <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
@@ -191,7 +191,7 @@ export function SecurityForm({
                 {others.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between gap-4 px-4 py-3"
+                    className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/40"
                   >
                     <div className="min-w-0 space-y-0.5">
                       <p className="truncate text-sm font-medium">
@@ -210,7 +210,7 @@ export function SecurityForm({
         </SettingsSection>
 
         <SettingsSection title="Personal API keys">
-          <div className="space-y-0 divide-y divide-border">
+          <div className="space-y-0">
             <div className="flex items-start justify-between gap-4 px-4 py-3.5">
               <p className="text-sm text-muted-foreground">
                 Use Zyvia’s GraphQL API to build your own integrations. Actions
@@ -238,7 +238,7 @@ export function SecurityForm({
               keys.map((key) => (
                 <div
                   key={key.id}
-                  className="flex items-center justify-between gap-4 px-4 py-3.5"
+                  className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
                 >
                   <div className="min-w-0 space-y-0.5">
                     <p className="truncate text-sm font-medium">{key.name}</p>
@@ -295,7 +295,7 @@ export function SecurityForm({
               <div className="flex items-center gap-2">
                 <code
                   className={cn(
-                    "block flex-1 overflow-x-auto rounded-lg border border-border bg-muted/40 px-3 py-2 font-mono text-xs"
+                    "block flex-1 overflow-x-auto rounded-lg bg-muted/40 px-3 py-2 font-mono text-xs"
                   )}
                 >
                   {createdSecret}

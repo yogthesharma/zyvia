@@ -97,7 +97,7 @@ export function AppSidebar({
     <Sidebar
       collapsible="icon"
       variant="sidebar"
-      className="border-r border-sidebar-border"
+      className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarHeader className="gap-1 px-2 py-2">
         <div className="flex items-center gap-0.5">

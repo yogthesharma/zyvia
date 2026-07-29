@@ -55,7 +55,7 @@ export function ThemeStepForm({ defaultTheme }: { defaultTheme?: string }) {
           <label
             key={option.value}
             className={cn(
-              "flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 transition-colors has-[:checked]:border-foreground"
+              "flex cursor-pointer items-start gap-3 rounded-lg bg-muted/20 p-4 transition-colors hover:bg-muted/35 has-[:checked]:bg-muted/50"
             )}
           >
             <input

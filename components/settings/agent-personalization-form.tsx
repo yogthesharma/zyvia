@@ -185,7 +185,7 @@ export function AgentPersonalizationForm({
             commands.
           </p>
         </div>
-        <div className="overflow-hidden rounded-lg border border-border bg-card/40">
+        <div className="overflow-hidden rounded-lg bg-muted/20">
           {skills.length === 0 ? (
             <div className="flex items-center justify-between px-4 py-3">
               <p className="text-sm text-muted-foreground">No skills created</p>
@@ -203,7 +203,7 @@ export function AgentPersonalizationForm({
             </div>
           ) : (
             <>
-              <ul className="divide-y divide-border">
+              <ul>
                 {skills.map((skill) => {
                   const updated = formatRelativeTime(
                     skill.updatedAt,
@@ -228,7 +228,7 @@ export function AgentPersonalizationForm({
                   )
                 })}
               </ul>
-              <div className="flex justify-end border-t border-border px-2 py-1.5">
+              <div className="flex justify-end bg-muted/30 px-2 py-1.5">
                 <Button
                   type="button"
                   variant="ghost"

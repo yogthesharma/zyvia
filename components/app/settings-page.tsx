@@ -96,7 +96,7 @@ export function SettingsSection({
   return (
     <section className="space-y-3">
       {title ? <h2 className="text-sm font-medium">{title}</h2> : null}
-      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card/40">
+      <div className="overflow-hidden rounded-lg bg-muted/20">
         {children}
       </div>
     </section>
@@ -119,7 +119,7 @@ export function SettingsRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
+        "flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
         className
       )}
     >
