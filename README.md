@@ -1,21 +1,43 @@
-# Next.js template
+# Zyvia
 
-This is a Next.js template with shadcn/ui.
+Linear-like project management, built with Next.js.
 
-## Adding components
+## Stack
 
-To add components to your app, run the following command:
+- **Next.js** (App Router) + TypeScript
+- **Tailwind CSS** + **shadcn/ui**
+- **Inter** as the base font
+
+## Getting started
 
 ```bash
-npx shadcn@latest add button
+pnpm install
+pnpm dev
 ```
 
-This will place the ui components in the `components` directory.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Using components
+## Scripts
 
-To use the components in your app, import them as follows:
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start the development server |
+| `pnpm build` | Production build |
+| `pnpm start` | Start the production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Type-check with TypeScript |
+| `pnpm format` | Format with Prettier |
+
+## UI components
+
+Add shadcn components with:
+
+```bash
+pnpm dlx shadcn@latest add button
+```
+
+Import from `@/components/ui`:
 
 ```tsx
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 ```
