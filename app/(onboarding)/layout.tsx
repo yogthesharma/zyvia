@@ -15,8 +15,11 @@ export default async function OnboardingLayout({
 
   if (profile.onboarding_step === "done" && profile.onboarding_completed_at) {
     const workspace = await getPrimaryWorkspace(profile.id)
-    if (!workspace) redirect("/")
-    redirect(await getWorkspaceHomePath(profile.id, workspace.slug))
+    if (workspace) {
+      redirect(await getWorkspaceHomePath(profile.id, workspace.slug))
+    }
+    // Completed onboarding but no membership (e.g. left every workspace).
+    // Allow onboarding pages so they can create a new workspace.
   }
 
   return children

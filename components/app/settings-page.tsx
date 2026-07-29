@@ -45,12 +45,12 @@ export function SettingsSection({
   title,
   children,
 }: {
-  title: string
+  title?: string
   children: React.ReactNode
 }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-medium">{title}</h2>
+      {title ? <h2 className="text-sm font-medium">{title}</h2> : null}
       <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card/40">
         {children}
       </div>

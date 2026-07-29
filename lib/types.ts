@@ -12,6 +12,8 @@ export type Profile = {
   id: string
   full_name: string | null
   avatar_url: string | null
+  username: string | null
+  title: string | null
   theme: "light" | "dark" | "system"
   onboarding_step: OnboardingStep
   onboarding_completed_at: string | null
